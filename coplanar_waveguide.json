@@ -1,0 +1,93 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/coplanar_waveguide"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/coplanar_waveguide.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement": {}
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [3002],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [3003, 3004, 3005],  // Copper
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "Conductivity": 5.8e7
+        
+      },
+      {
+        "Attributes": [3001],  // Kapton
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      }
+    ]
+  },
+  "Boundaries":
+  {
+    "PEC":
+    {
+      "Attributes": [2001, 2002, 2003]  // line boundaries
+    },
+    "Absorbing":
+    {
+      "Attributes": [2005, 2007, 2009],
+      "Order": 1
+    },
+    "WavePort":
+    [
+      {
+        "Index": 1,
+        "Attributes": [2004],
+        "Mode": 1,
+        "Offset": 0.0,
+        "Excitation": true
+      },
+      {
+        "Index": 2,
+        "Attributes": [2006],
+        "Mode": 1,
+        "Offset": 0.0
+      },
+      {
+        "Index": 3,
+        "Attributes": [2008],
+        "Mode": 1,
+        "Offset": 0.0
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    "Driven":
+    {
+      "MinFreq": 5.0,  // GHz
+      "MaxFreq": 30.0,  // GHz
+      "FreqStep": 5.0,  // GHz
+      "SaveStep": 5
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,
+      "MaxIts": 200
+    }
+  }
+}
+
