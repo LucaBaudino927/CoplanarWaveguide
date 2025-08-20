@@ -20,8 +20,6 @@
 <PDataArray type="Float32" Name="E0_1_real" NumberOfComponents="3" format="binary" />
 <PDataArray type="Float32" Name="E0_2_imag" NumberOfComponents="3" format="binary" />
 <PDataArray type="Float32" Name="E0_2_real" NumberOfComponents="3" format="binary" />
-<PDataArray type="Float32" Name="E0_3_imag" NumberOfComponents="3" format="binary" />
-<PDataArray type="Float32" Name="E0_3_real" NumberOfComponents="3" format="binary" />
 <PDataArray type="Float32" Name="E_imag" NumberOfComponents="3" format="binary" />
 <PDataArray type="Float32" Name="E_real" NumberOfComponents="3" format="binary" />
 <PDataArray type="Float32" Name="J_s_imag" NumberOfComponents="3" format="binary" />

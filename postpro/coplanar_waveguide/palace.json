@@ -2,9 +2,9 @@
   "ElapsedTime": {
     "Counts": {
       "Adaptation": 0,
-      "CoarseSolve": 105,
+      "CoarseSolve": 121,
       "Construction": 2,
-      "DiskIO": 5,
+      "DiskIO": 9,
       "Div.-FreeProjection": 0,
       "EigenvalueSolve": 0,
       "Estimation": 12,
@@ -15,7 +15,7 @@
       "PROMConstruction": 0,
       "PROMSolve": 0,
       "Postprocessing": 14,
-      "Preconditioner": 105,
+      "Preconditioner": 121,
       "Rebalancing": 0,
       "Setup": 6,
       "Solve": 12,
@@ -25,26 +25,26 @@
     },
     "Durations": {
       "Adaptation": 0.0,
-      "CoarseSolve": 11.281954579000002,
-      "Construction": 34.158822444,
-      "DiskIO": 39.080254487999994,
+      "CoarseSolve": 16.750264273,
+      "Construction": 15.471324472,
+      "DiskIO": 107.201535523,
       "Div.-FreeProjection": 0.0,
       "EigenvalueSolve": 0.0,
-      "Estimation": 1.466882002,
-      "Initialization": 1.0879151759999999,
-      "LinearSolve": 52.72126173199999,
-      "MeshPreprocessing": 3.948022755,
-      "OperatorConstruction": 6.636487385,
+      "Estimation": 1.3863762880000001,
+      "Initialization": 0.956422498,
+      "LinearSolve": 58.44010701200004,
+      "MeshPreprocessing": 2.825076244,
+      "OperatorConstruction": 3.3921677480000003,
       "PROMConstruction": 0.0,
       "PROMSolve": 0.0,
-      "Postprocessing": 7.839186181999998,
-      "Preconditioner": 561.4779001080002,
+      "Postprocessing": 2.492116271000001,
+      "Preconditioner": 628.8858547759999,
       "Rebalancing": 0.0,
-      "Setup": 165.32884105,
-      "Solve": 161.621455688,
+      "Setup": 196.453387192,
+      "Solve": 138.510703853,
       "TimeStepping": 0.0,
-      "Total": 1047.005408321,
-      "WavePorts": 0.10631551
+      "Total": 1173.072817445,
+      "WavePorts": 0.055693409
     }
   },
   "Excitations": [
@@ -63,16 +63,16 @@
   ],
   "GitTag": "v0.13.0-555-g3f0de804",
   "LinearSolver": {
-    "TotalIts": 93,
+    "TotalIts": 109,
     "TotalSolves": 6
   },
   "Problem": {
-    "DegreesOfFreedom": 517732,
+    "DegreesOfFreedom": 485132,
     "MPISize": 4,
-    "MeshElements": 69870,
+    "MeshElements": 67453,
     "MultigridDegreesOfFreedom": [
-      104368,
-      517732
+      96141,
+      485132
     ]
   }
 }

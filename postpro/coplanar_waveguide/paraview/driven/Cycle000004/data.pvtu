@@ -10,8 +10,13 @@
 	<PDataArray type="UInt8"  Name="types"        NumberOfComponents="1" format="binary"/>
 </PCells>
 <PPointData>
-<PDataArray type="Float32" Name="Indicator" NumberOfComponents="1"  format="binary" />
-<PDataArray type="Float32" Name="Rank" NumberOfComponents="1"  format="binary" />
+<PDataArray type="Float32" Name="B_imag" NumberOfComponents="3" ComponentName0="0" ComponentName1="1" ComponentName2="2" format="binary" />
+<PDataArray type="Float32" Name="B_real" NumberOfComponents="3" ComponentName0="0" ComponentName1="1" ComponentName2="2" format="binary" />
+<PDataArray type="Float32" Name="E_imag" NumberOfComponents="3" ComponentName0="0" ComponentName1="1" ComponentName2="2" format="binary" />
+<PDataArray type="Float32" Name="E_real" NumberOfComponents="3" ComponentName0="0" ComponentName1="1" ComponentName2="2" format="binary" />
+<PDataArray type="Float32" Name="U_e" NumberOfComponents="1" format="binary" />
+<PDataArray type="Float32" Name="U_m" NumberOfComponents="1" format="binary" />
+<PDataArray type="Float32" Name="S" NumberOfComponents="3" format="binary" />
 </PPointData>
 <PCellData>
 	<PDataArray type="Int32" Name="attribute" NumberOfComponents="1" format="binary"/>
