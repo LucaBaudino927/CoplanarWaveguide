@@ -1,0 +1,170 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/coplanar_waveguide_driven_lumped"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/coplanar_waveguide_lumped.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement": {}
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [8],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [10],  // Aluminium
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "Conductivity": 33112582.78 // S/m
+        
+      },
+      {
+        "Attributes": [9],  // Kapton
+        "Permeability": 1.0,
+        "Permittivity": 3.3,
+        "LossTan": 0.0013
+      }
+    ],
+    "Postprocessing":
+    {
+      "Energy":
+      [
+        {
+          "Index": 1,
+          "Attributes": [9]
+        }
+      ],
+      "Probe":
+      [
+        {
+          "Index": 1,
+          "Center": [0, 810, 0] // center of gnd1 left side
+        },
+        {
+          "Index": 2,
+          "Center": [0, 1190, 0] // center of gnd2 left side
+        }
+      ]
+    }
+  },
+  "Boundaries":
+  {
+    "PEC":
+    {
+      "Attributes": [6]  // metal boundaries
+    },
+    "Absorbing":
+    {
+      "Attributes": [1],  //farfield
+      "Order": 1
+    },
+    "LumpedPort":
+    [
+      {
+        "Index": 1,
+        "R": 122.64803,  // Ω, 2-element uniform
+        "Excitation": 1,
+        "Elements":
+        [
+          {
+            "Attributes": [2], // p1a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [4], // p1b
+            "Direction": "-Y"
+          }
+        ]
+      },
+      {
+        "Index": 2,
+        "R": 122.64803,
+        "Elements":
+        [
+          {
+            "Attributes": [3], // p2a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [5], // p2b
+            "Direction": "-Y"
+          }
+        ]
+      }
+    ],
+    "Postprocessing":
+    {
+      "SurfaceFlux":
+      [
+        {
+          "Index": 1,
+          "Attributes": [6], // trace
+          "Type": "Electric",
+          "TwoSided": true
+        },
+        {
+          "Index": 2,
+          "Attributes": [1], // farfield
+          "Type": "Power"
+        }
+      ],
+      "Dielectric":
+      [
+        {
+          "Index": 1,
+          "Attributes": [7], // gap
+          "Type": "SA",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 10.0,
+          "LossTan": 1.0
+        },
+        {
+          "Index": 2,
+          "Attributes": [6], // trace
+          "Type": "MS",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 10.0,
+          "LossTan": 1.0
+        },
+        {
+          "Index": 3,
+          "Attributes": [6], // trace
+          "Type": "MA",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 10.0,
+          "LossTan": 1.0
+        }
+      ]
+    }
+  },
+  "Solver":
+  {
+    "Order": 4,
+    "Device": "CPU",
+    "Driven":
+    {
+      "MinFreq": 1,   // GHz
+      "MaxFreq": 5.0,   // GHz
+      "FreqStep": 1,  // GHz
+      "SaveStep": 1
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,
+      "MaxIts": 200
+    }
+  }
+}
+

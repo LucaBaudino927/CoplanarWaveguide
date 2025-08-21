@@ -32,7 +32,7 @@
         "Attributes": [3001],  // Kapton
         "Permeability": 1.0,
         "Permittivity": 3.3,
-        "LossTan": 0.0
+        "LossTan": 0.0013
       }
     ]
   },

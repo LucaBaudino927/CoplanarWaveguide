@@ -6,7 +6,7 @@ s11 = []
 s21 = []
 first = True
 
-with open('postpro/coplanar_waveguide_driven_simulazione_lunga/port-S.csv','r') as csvfile:
+with open('postpro/coplanar_waveguide_driven_lumped/port-S.csv','r') as csvfile:
     lines = csv.reader(csvfile, delimiter=',')
     for row in lines:
         if first == False :
@@ -16,7 +16,6 @@ with open('postpro/coplanar_waveguide_driven_simulazione_lunga/port-S.csv','r') 
         first = False
 
 plt.plot(x, s11, color = 'g', linestyle = 'solid', marker = 'o',label = "S11")
-
 plt.xticks(rotation = 25)
 plt.xlabel('Frequency [GHz]')
 plt.ylabel('S11 [dB]')
@@ -26,7 +25,6 @@ plt.legend()
 plt.show()
 
 plt.plot(x, s21, color = 'r', linestyle = 'solid', marker = 'o',label = "S21")
-
 plt.xticks(rotation = 25)
 plt.xlabel('Frequency [GHz]')
 plt.ylabel('S21 [dB]')
