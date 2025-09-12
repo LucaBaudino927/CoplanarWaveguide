@@ -3,11 +3,11 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/coplanar_waveguide_driven_lumped"
+    "Output": "postpro/Rame/Lumped/Test_diversi_parametri_e_geometrie/coplanar_waveguide_lumped_30um_102ohm_cond_62500000_porte_50um_length_10mm"
   },
   "Model":
   {
-    "Mesh": "mesh/coplanar_waveguide_lumped.msh2",
+    "Mesh": "mesh/Test_nuova_geometria_1mm/cpw_port50um_lumped_30.0um.msh2",
     "L0": 1.0e-6,  // μm
     "Refinement": {}
   },
@@ -16,21 +16,18 @@
     "Materials":
     [
       {
-        "Attributes": [8],  // Air
+        "Attributes": [1],  // Air
         "Permeability": 1.0,
         "Permittivity": 1.0,
         "LossTan": 0.0
       },
       {
-        "Attributes": [10],  // Aluminium
-        "Permeability": 1.0,
-        "Permittivity": 1.0,
-        "Conductivity": 33112582.78 // S/m
-        
+        "Attributes": [3],  // Aluminium
+        "Conductivity": 62500000, // S/m     Rame prima: 59600000  Rame now: 57471264  Al: 33112582.78
+        "Permeability": 0.999994
       },
       {
-        "Attributes": [9],  // Kapton
-        "Permeability": 1.0,
+        "Attributes": [2],  // Kapton
         "Permittivity": 3.3,
         "LossTan": 0.0013
       }
@@ -41,7 +38,7 @@
       [
         {
           "Index": 1,
-          "Attributes": [9]
+          "Attributes": [2]
         }
       ],
       "Probe":
@@ -61,42 +58,42 @@
   {
     "PEC":
     {
-      "Attributes": [6]  // metal boundaries
+      "Attributes": [9]  // metal boundaries
     },
     "Absorbing":
     {
-      "Attributes": [1],  //farfield
+      "Attributes": [4],  //farfield
       "Order": 1
     },
     "LumpedPort":
     [
       {
         "Index": 1,
-        "R": 122.64803,  // Ω, 2-element uniform
+        "R": 102,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
         "Excitation": 1,
         "Elements":
         [
           {
-            "Attributes": [2], // p1a
+            "Attributes": [5], // p1a
             "Direction": "+Y"
           },
           {
-            "Attributes": [4], // p1b
+            "Attributes": [7], // p1b
             "Direction": "-Y"
           }
         ]
       },
       {
         "Index": 2,
-        "R": 122.64803,
+        "R": 102,
         "Elements":
         [
           {
-            "Attributes": [3], // p2a
+            "Attributes": [6], // p2a
             "Direction": "+Y"
           },
           {
-            "Attributes": [5], // p2b
+            "Attributes": [8], // p2b
             "Direction": "-Y"
           }
         ]
@@ -108,13 +105,13 @@
       [
         {
           "Index": 1,
-          "Attributes": [6], // trace
+          "Attributes": [9], // trace
           "Type": "Electric",
           "TwoSided": true
         },
         {
           "Index": 2,
-          "Attributes": [1], // farfield
+          "Attributes": [4], // farfield
           "Type": "Power"
         }
       ],
@@ -122,7 +119,7 @@
       [
         {
           "Index": 1,
-          "Attributes": [7], // gap
+          "Attributes": [10], // gap
           "Type": "SA",
           "Thickness": 2.0e-3,  // μm
           "Permittivity": 10.0,
@@ -130,7 +127,7 @@
         },
         {
           "Index": 2,
-          "Attributes": [6], // trace
+          "Attributes": [9], // trace
           "Type": "MS",
           "Thickness": 2.0e-3,  // μm
           "Permittivity": 10.0,
@@ -138,7 +135,7 @@
         },
         {
           "Index": 3,
-          "Attributes": [6], // trace
+          "Attributes": [9], // trace
           "Type": "MA",
           "Thickness": 2.0e-3,  // μm
           "Permittivity": 10.0,
@@ -149,22 +146,38 @@
   },
   "Solver":
   {
-    "Order": 4,
+    "Order": 2,
     "Device": "CPU",
     "Driven":
     {
-      "MinFreq": 1,   // GHz
-      "MaxFreq": 5.0,   // GHz
-      "FreqStep": 1,  // GHz
-      "SaveStep": 1
+      "Samples":
+      [
+        {
+          "Type": "Linear",
+          "MinFreq": 0.01,  // GHz
+          "MaxFreq": 0.05,  // GHz
+          "FreqStep": 0.04 // GHz
+        },
+        {
+          "Type": "Linear",
+          "MinFreq": 0.1,  // GHz
+          "MaxFreq": 0.4,  // GHz
+          "FreqStep": 0.1 // GHz
+        },
+        {
+          "Type": "Linear",
+          "MinFreq": 0.5,  // GHz
+          "MaxFreq": 3.0,  // GHz
+          "FreqStep": 0.5 // GHz
+        }
+      ]//,"Save": [0.05, 3.0]
     },
     "Linear":
     {
       "Type": "Default",
       "KSPType": "GMRES",
-      "Tol": 1.0e-8,
-      "MaxIts": 200
+      "Tol": 1.0e-8,  //prima 1.0e-8
+      "MaxIts": 200   //prima 200
     }
   }
 }
-

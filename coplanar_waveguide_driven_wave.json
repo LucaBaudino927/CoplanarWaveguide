@@ -3,11 +3,11 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/coplanar_waveguide_driven_wave"
+    "Output": "postpro/Rame/Wave/coplanar_waveguide_wave"
   },
   "Model":
   {
-    "Mesh": "mesh/coplanar_waveguide_wave.msh2",
+    "Mesh": "mesh/Mesh_1mm/cpw_wave_22.5um.msh2",
     "L0": 1.0e-6,  // μm
     "Refinement": {}
   },
@@ -16,20 +16,20 @@
     "Materials":
     [
       {
-        "Attributes": [3002],  // Air
+        "Attributes": [1],  // Air  // oggetti 3D
         "Permeability": 1.0,
         "Permittivity": 1.0,
         "LossTan": 0.0
       },
       {
-        "Attributes": [3003, 3004, 3005],  // Aluminium
+        "Attributes": [3],  // Aluminium  // oggetti 3D
         "Permeability": 1.0,
         "Permittivity": 1.0,
-        "Conductivity": 33112582.78 // S/m
+        "Conductivity": 59600000 // S/m     Rame:  59600000    Al: 33112582.78
         
       },
       {
-        "Attributes": [3001],  // Kapton
+        "Attributes": [2],  // Kapton  // oggetti 3D
         "Permeability": 1.0,
         "Permittivity": 3.3,
         "LossTan": 0.0013
@@ -40,29 +40,95 @@
   {
     "PEC":
     {
-      "Attributes": [2001, 2002, 2003, 2006, 2007, 2008, 2009]  // line boundaries + gnd ports
+      "Attributes": [6, 7, 9]  // metal trace + end boundaries // oggetti 2D
     },
     "Absorbing":
     {
-      "Attributes": [2010],  //farfield
+      "Attributes": [8],  //farfield  // oggetti 2D
       "Order": 1
     },
     "WavePort":
     [
       {
         "Index": 1,
-        "Attributes": [2004], //signal_port_in
+        "Attributes": [4], // port1  // oggetti 2D
         "Mode": 1,
+        "Active" : true,
+        "Excitation": 1,
         "Offset": 0.0,
-        "Excitation": true
+        "MaxIts": 30,
+        "KSPTol": 1e-8,
+        "EigenTol": 1e-6,
+        "Verbose": 0
       },
       {
         "Index": 2,
-        "Attributes": [2005], //signal_port_out
+        "Attributes": [5], // port2  // oggetti 2D
         "Mode": 1,
-        "Offset": 0.0
+        "Active" : true,
+        "Offset": 0.0,
+        "MaxIts": 30,
+        "KSPTol": 1e-8,
+        "EigenTol": 1e-6,
+        "Verbose": 0
       }
-    ]
+    ],
+    "Postprocessing":
+    {
+      "SurfaceFlux":
+      [
+        {
+          "Index": 1,
+          "Attributes": [9], // trace //oggetto 2D
+          "Type": "Electric",
+          "TwoSided": true
+        },
+        {
+          "Index": 2,
+          "Attributes": [8],  //farfield  // oggetti 2D
+          "Type": "Power"
+        },
+        {
+          "Index": 3,
+          "Attributes": [4, 6], //port1 + end1 // oggetto 2D
+          "Type": "Power",
+          "Center": [0, 635, -10]
+        },
+        {
+          "Index": 4,
+          "Attributes": [5, 7], //port1 + end1 // oggetto 2D
+          "Type": "Power",
+          "Center": [1000, 635, -10]
+        }
+      ],
+      "Dielectric":
+      [
+        {
+          "Index": 1,
+          "Attributes": [10], //gap //oggetto 2D
+          "Type": "SA",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 3.3,
+          "LossTan": 0.0013
+        },
+        {
+          "Index": 2,
+          "Attributes": [9], // trace //oggetto 2D
+          "Type": "MS",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 10.0,
+          "LossTan": 1.0
+        },
+        {
+          "Index": 3,
+          "Attributes": [9], // trace //oggetto 2D
+          "Type": "MA",
+          "Thickness": 2.0e-3,  // μm
+          "Permittivity": 10.0,
+          "LossTan": 1.0
+        }
+      ]
+    }
   },
   "Solver":
   {
@@ -70,10 +136,17 @@
     "Device": "CPU",
     "Driven":
     {
-      "MinFreq": 1.0,   // GHz
-      "MaxFreq": 20.0,   // GHz
-      "FreqStep": 0.5,  // GHz
-      "SaveStep": 1
+      "Samples":
+      [
+        {
+          "Type": "Linear",
+          "MinFreq": 1.0,  // GHz
+          "MaxFreq": 5.0,  // GHz
+          "FreqStep": 1, // GHz
+          "SaveStep": 1
+        }
+      ],
+      "Save": [1.0, 5.0]
     },
     "Linear":
     {
