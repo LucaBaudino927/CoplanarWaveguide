@@ -42,14 +42,15 @@ function generate_cpw_wave_mesh(;
     filename::AbstractString,
     refinement::Integer        = 0,
     order::Integer             = 1,
-    trace_width_μm::Real       = 90.0,
-    gap_width_μm::Real         = 100.0,
-    boundary_distance_um::Real = 765.0,
-    substrate_height_μm::Real  = 25.0,
-    metal_height_μm::Real      = 20.0,
-    remove_metal_vol::Bool     = true,
-    length_μm::Real            = 8000.0,
-    air_distance_um::Real      = 400.0,
+    trace_width_μm::Real      = 30.0,
+    gap_width_μm::Real        = 18.0,
+    boundary_distance_um::Real = 200.0,
+    ground_width_μm::Real     = 800.0,
+    substrate_height_μm::Real = 500.0,
+    metal_height_μm::Real     = 0.0,
+    remove_metal_vol::Bool     = false,
+    length_μm::Real           = 4000.0,
+    air_distance_um::Real      = 300.0,
     coax_ports::Bool           = false,
     verbose::Integer           = 5,
     gui::Bool                  = false
@@ -58,11 +59,10 @@ function generate_cpw_wave_mesh(;
     @assert order > 0
     @assert trace_width_μm > 0
     @assert gap_width_μm > 0
-    @assert boundary_distance_um > 0
+    @assert ground_width_μm > 0
     @assert substrate_height_μm > 0
     @assert metal_height_μm >= 0
     @assert length_μm > 0
-    @assert air_distance_um > 0
 
     kernel = gmsh.model.occ
 
@@ -70,37 +70,39 @@ function generate_cpw_wave_mesh(;
     gmsh.option.setNumber("General.Verbosity", verbose)
 
     # Add model
-    if "coplanar_waveguide_wave" in gmsh.model.list()
-        gmsh.model.setCurrent("coplanar_waveguide_wave")
+    if "cpw" in gmsh.model.list()
+        gmsh.model.setCurrent("cpw")
         gmsh.model.remove()
     end
-    gmsh.model.add("coplanar_waveguide_wave")
+    gmsh.model.add("cpw")
 
-    sep_dy = 0.5 * air_distance_um
+    sep_dz = air_distance_um
+    sep_dy = air_distance_um/3.0
 
     # Mesh parameters
     l_trace = 0.25 * trace_width_μm * (2.0^-refinement)
-    l_farfield = 2.0 * air_distance_um * (2.0^-refinement)
+    l_farfield = 1.0 * sep_dz * (2.0^-refinement)
 
     # Chip pattern
     dy = 0.0
-    n1 = kernel.addRectangle(0.0, dy, 0.0, length_μm, boundary_distance_um)
+    n0 = kernel.addRectangle(0.0, dy, 0.0, length_μm, boundary_distance_um)
     dy += boundary_distance_um
-    gnd1 = kernel.addRectangle(0.0, dy, 0.0, length_μm, trace_width_μm)
+    g1 = kernel.addRectangle(0.0, dy, 0.0, length_μm, ground_width_μm)
+    dy += ground_width_μm
+    n1 = kernel.addRectangle(0.0, dy, 0.0, length_μm, gap_width_μm)
+    dy += gap_width_μm
+    t1 = kernel.addRectangle(0.0, dy, 0.0, length_μm, trace_width_μm)
     dy += trace_width_μm
     n2 = kernel.addRectangle(0.0, dy, 0.0, length_μm, gap_width_μm)
     dy += gap_width_μm
-    signal = kernel.addRectangle(0.0, dy, 0.0, length_μm, trace_width_μm)
-    dy += trace_width_μm
-    n3 = kernel.addRectangle(0.0, dy, 0.0, length_μm, gap_width_μm)
-    dy += gap_width_μm
-    gnd2 = kernel.addRectangle(0.0, dy, 0.0, length_μm, trace_width_μm)
-    dy += trace_width_μm
-    n4 = kernel.addRectangle(0.0, dy, 0.0, length_μm, boundary_distance_um)
+    g2 = kernel.addRectangle(0.0, dy, 0.0, length_μm, ground_width_μm)
+    dy += ground_width_μm
+    n3 = kernel.addRectangle(0.0, dy, 0.0, length_μm, boundary_distance_um)
     dy += boundary_distance_um
 
     # Metal thickness
-    metal_boundary = [gnd1, gnd2, signal]
+    metal_boundary = [g1, g2, t1]
+    metal_boundary_top = typeof(metal_boundary)(undef, 0)
     metal = typeof(metal_boundary)(undef, 0)
     if metal_height_μm > 0
         metal_dimtags =
@@ -109,24 +111,33 @@ function generate_cpw_wave_mesh(;
         for domain in metal
             _, boundary = kernel.getSurfaceLoops(domain)
             @assert length(boundary) == 1
+            append!(metal_boundary_top, first(boundary))
         end
+        filter!(x -> !(x in metal_boundary), metal_boundary_top)
     end
 
     # Substrate
-    substrate = kernel.addBox(0.0, 0.0, -substrate_height_μm, length_μm, dy, substrate_height_μm)
+    substrate =
+        kernel.addBox(0.0, 0.0, -substrate_height_μm, length_μm, dy, substrate_height_μm)
+    ##
+    substrate_boundary = typeof(metal_boundary)(undef, 0)
+    for domain in substrate
+        _, boundary = kernel.getSurfaceLoops(domain)
+        @assert length(boundary) == 1
+        append!(substrate_boundary, first(boundary))
+    end
+    filter!(x -> !(x in metal_boundary) || !(x in metal_boundary_top), substrate_boundary)
+    ##
 
     # Exterior box
-    domain = kernel.addBox(0.0, -sep_dy, -substrate_height_μm-air_distance_um, length_μm, dy + 2.0 * sep_dy, 2.0*air_distance_um + substrate_height_μm + metal_height_μm)
+    domain =
+        kernel.addBox(0.0, -sep_dy, -sep_dz, length_μm, dy + 2.0 * sep_dy, 2.0 * sep_dz)
     _, domain_boundary = kernel.getSurfaceLoops(domain)
     @assert length(domain_boundary) == 1
     domain_boundary = first(domain_boundary)
 
     # Ports
-    ## cy1 is the center of the 2 ports on Y-axis
-    cy1 = boundary_distance_um + trace_width_μm + gap_width_μm + 0.5 * trace_width_μm
-    dyp1 = 8 * trace_width_μm
-    dzp1 = 1 * substrate_height_μm
-    dzp2 = 2 * trace_width_μm
+    cy1 = boundary_distance_um + ground_width_μm + gap_width_μm + 0.5 * trace_width_μm
     if coax_ports
         ra = 0.5 * trace_width_μm
         rb = 0.5 * trace_width_μm + gap_width_μm
@@ -141,37 +152,40 @@ function generate_cpw_wave_mesh(;
             global p2 = last(first(first(kernel.cut((2, db), (2, da)))))
         end
     else
+        dyp1 = 4.0 * trace_width_μm
+        dyp2 = dyp1
+        dzp1 = 2 * trace_width_μm #0.5 * (sep_dz + substrate_height_μm)
+        dzp2 = 3 * trace_width_μm
         let pa, pb, l
-            pa = kernel.addPoint(0.0, cy1 - 0.5 * dyp1, -dzp1)
-            pb = kernel.addPoint(0.0, cy1 + 0.5 * dyp1, -dzp1)
+            pa = kernel.addPoint(0.0, cy1 - dyp2, -dzp1)
+            pb = kernel.addPoint(0.0, cy1 + dyp1, -dzp1)
             l = kernel.addLine(pa, pb)
             global p1 = first(
                 filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, dzp1 + dzp2))
             )[2]
         end
         let pa, pb, l
-            pa = kernel.addPoint(length_μm, cy1 - 0.5 * dyp1, -dzp1)
-            pb = kernel.addPoint(length_μm, cy1 + 0.5 * dyp1, -dzp1)
+            pa = kernel.addPoint(length_μm, cy1 - dyp2, -dzp1)
+            pb = kernel.addPoint(length_μm, cy1 + dyp1, -dzp1)
             l = kernel.addLine(pa, pb)
             global p2 = first(
                 filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, dzp1 + dzp2))
             )[2]
         end
     end
-
     let pa, pb, l
-        pa = kernel.addPoint(0.0, -sep_dy, -substrate_height_μm-air_distance_um)
-        pb = kernel.addPoint(0.0, dy + sep_dy, -substrate_height_μm-air_distance_um)
+        pa = kernel.addPoint(0.0, -sep_dy, -sep_dz)
+        pb = kernel.addPoint(0.0, dy + sep_dy, -sep_dz)
         l = kernel.addLine(pa, pb)
         global p5 =
-            first(filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, 2*air_distance_um + substrate_height_μm + metal_height_μm)))[2]
+            first(filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, 2.0 * sep_dz)))[2]
     end
     let pa, pb, l
-        pa = kernel.addPoint(length_μm, -sep_dy, -substrate_height_μm-air_distance_um)
-        pb = kernel.addPoint(length_μm, dy + sep_dy, -substrate_height_μm-air_distance_um)
+        pa = kernel.addPoint(length_μm, -sep_dy, -sep_dz)
+        pb = kernel.addPoint(length_μm, dy + sep_dy, -sep_dz)
         l = kernel.addLine(pa, pb)
         global p6 =
-            first(filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, 2*air_distance_um + substrate_height_μm + metal_height_μm)))[2]
+            first(filter(x -> x[1] == 2, kernel.extrude([1, l], 0.0, 0.0, 2.0 * sep_dz)))[2]
     end
 
     # Embedding
@@ -222,7 +236,7 @@ function generate_cpw_wave_mesh(;
     end
 
     air_domain_group = gmsh.model.addPhysicalGroup(3, [air_domain], -1, "air")
-    si_domain_group = gmsh.model.addPhysicalGroup(3, [si_domain], -1, "kapton")
+    si_domain_group = gmsh.model.addPhysicalGroup(3, [si_domain], -1, "si")
     metal_domain_group = gmsh.model.addPhysicalGroup(3, metal_domains, -1, "metal")
 
     port1 = last.(geom_map[findfirst(x -> x == (2, p1), geom_dimtags)])
@@ -248,8 +262,7 @@ function generate_cpw_wave_mesh(;
     )
     filter!(
         x -> !(
-            x in port1 || x in port2 
-            || x in end1 || x in end2
+            x in port1 || x in port2 || x in end1 || x in end2
         ),
         farfield
     )
@@ -266,13 +279,42 @@ function generate_cpw_wave_mesh(;
     gap = last.(
         collect(
             Iterators.flatten(
-                geom_map[findall(x -> x[1] == 2 && x[2] in [n1, n2, n3, n4], geom_dimtags)]
+                geom_map[findall(x -> x[1] == 2 && x[2] in [n0, n1, n2, n3], geom_dimtags)]
             )
         )
     )
 
     trace_group = gmsh.model.addPhysicalGroup(2, trace, -1, "trace")
     gap_group = gmsh.model.addPhysicalGroup(2, gap, -1, "gap")
+
+    trace_top = last.(
+        collect(
+            Iterators.flatten(
+                geom_map[findall(
+                    x -> x[1] == 2 && x[2] in metal_boundary_top,
+                    geom_dimtags
+                )]
+            )
+        )
+    )
+    filter!(
+        x -> !(
+            x in port1 || x in port2 || x in end1 || x in end2
+        ),
+        trace_top
+    )
+
+    trace_top_group = gmsh.model.addPhysicalGroup(2, trace_top, -1, "trace2")
+
+    ##
+    filter!(
+        x -> !(
+            x in port1 || x in port2 || x in end1 || x in end2
+        ),
+        substrate_boundary
+    )
+    substrate_group = gmsh.model.addPhysicalGroup(2, substrate_boundary, -1, "substrate")
+    ##
 
     # Generate mesh
     gmsh.option.setNumber("Mesh.MeshSizeMin", l_trace)
@@ -281,31 +323,31 @@ function generate_cpw_wave_mesh(;
     gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
     gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
 
-    trace_points = last.(
+    gap_points = last.(
         filter(
             x -> x[1] == 0,
-            gmsh.model.getBoundary([(2, z) for z in trace], false, true, true)
+            gmsh.model.getBoundary([(2, z) for z in gap], false, true, true)
         )
     )
-    trace_curves = last.(
+    gap_curves = last.(
         filter(
             x -> x[1] == 1,
-            gmsh.model.getBoundary([(2, z) for z in trace], false, false, false)
+            gmsh.model.getBoundary([(2, z) for z in gap], false, false, false)
         )
     )
 
     gmsh.model.mesh.field.add("Distance", 1)
-    gmsh.model.mesh.field.setNumbers(1, "PointsList", trace_points)
-    gmsh.model.mesh.field.setNumbers(1, "CurvesList", trace_curves)
+    #gmsh.model.mesh.field.setNumbers(1, "PointsList", gap_points)
+    #gmsh.model.mesh.field.setNumbers(1, "CurvesList", gap_curves)
     gmsh.model.mesh.field.setNumbers(1, "SurfacesList", trace)
-    gmsh.model.mesh.field.setNumber(1, "Sampling", 1000)
+    gmsh.model.mesh.field.setNumber(1, "Sampling", ceil(length_μm / l_trace))
 
     gmsh.model.mesh.field.add("Threshold", 2)
     gmsh.model.mesh.field.setNumber(2, "InField", 1)
     gmsh.model.mesh.field.setNumber(2, "SizeMin", l_trace)
     gmsh.model.mesh.field.setNumber(2, "SizeMax", l_farfield)
-    gmsh.model.mesh.field.setNumber(2, "DistMin", 1.0 * trace_width_μm)
-    gmsh.model.mesh.field.setNumber(2, "DistMax", 3.0 * trace_width_μm)
+    gmsh.model.mesh.field.setNumber(2, "DistMin", trace_width_μm)
+    gmsh.model.mesh.field.setNumber(2, "DistMax", 0.7 * sep_dz)
 
     gmsh.model.mesh.field.add("Min", 101)
     gmsh.model.mesh.field.setNumbers(101, "FieldsList", [2])
@@ -313,7 +355,7 @@ function generate_cpw_wave_mesh(;
 
     gmsh.option.setNumber("Mesh.Algorithm", 6)
     gmsh.option.setNumber("Mesh.Algorithm3D", 10)
-    for tag in Iterators.flatten((gap, trace))
+    for tag in Iterators.flatten((gap, trace, trace_top))
         gmsh.model.mesh.setAlgorithm(2, tag, 8)
     end
 
@@ -342,6 +384,9 @@ function generate_cpw_wave_mesh(;
         println("Far-end boundaries: ", end2_group)
         println("Farfield boundaries: ", farfield_group)
         println("Metal boundaries: ", trace_group)
+        if length(trace_top) > 0
+            println("Extruded metal boundaries: ", trace_top_group)
+        end
         println("Negative trace boundaries: ", gap_group)
 
         println("\nPorts:")
@@ -357,8 +402,6 @@ function generate_cpw_wave_mesh(;
 
     return gmsh.finalize()
 end
-
-
 
 
 
@@ -464,12 +507,12 @@ function generate_cpw_lumped_mesh(;
     end
     gmsh.model.add("coplanar_waveguide_driven_lumped")
 
-    air_distance_um = 400.0
-    sep_dy = 0.5 * air_distance_um
+    sep_dz = air_distance_um
+    sep_dy = air_distance_um/3.0
 
     # Mesh parameters
-    l_trace = (trace_width_μm / 3) * (2.0^-refinement)
-    l_farfield = 2.0 * air_distance_um * (2.0^-refinement)
+    l_trace = (1.0/6.0) * trace_width_μm * (2.0^-refinement)
+    l_farfield = 1.0 * sep_dz * (2.0^-refinement)
 
     # Chip pattern
     dy = 0.0
@@ -497,9 +540,7 @@ function generate_cpw_lumped_mesh(;
         metal = [x[2] for x in filter(x -> x[1] == 3, metal_dimtags)]
         ##
         extruded_metal_boundary = [x[2] for x in filter(x -> x[1] == 2, metal_dimtags)]
-        for x in metal_boundary
-            push!(extruded_metal_boundary, x)
-        end
+        filter!(x -> !(x == metal_boundary), extruded_metal_boundary)
         println("\nmetal_boundary:", metal_boundary)
         println("\nmetal_dimtags:", metal_dimtags)
         println("\nextruded_metal_boundary:", extruded_metal_boundary)
@@ -512,27 +553,21 @@ function generate_cpw_lumped_mesh(;
 
     # Substrate
     substrate = kernel.addBox(0.0, 0.0, -substrate_height_μm, length_μm, dy, substrate_height_μm)
-
+        
     # Exterior box
-    domain = kernel.addBox(
-        -0.5 * sep_dy,
-        -sep_dy,
-        -air_distance_um,
-        length_μm + sep_dy,
-        dy + 2.0 * sep_dy,
-        2.0 * air_distance_um
-    )
+    domain = 
+        kernel.addBox(-0.5 * sep_dy, -0.5 * sep_dy, -sep_dz, length_μm + 1.0 * sep_dy, dy + 1.0 * sep_dy, 2.0 * sep_dz)
     _, domain_boundary = kernel.getSurfaceLoops(domain)
     @assert length(domain_boundary) == 1
     domain_boundary = first(domain_boundary)
 
     # Ports
     dy = boundary_distance_um + trace_width_μm
-    p1a = kernel.addRectangle(0.0, dy, 0.0, gap_width_μm/2, gap_width_μm)
-    p2a = kernel.addRectangle(length_μm - gap_width_μm/2, dy, 0.0, gap_width_μm/2, gap_width_μm)
+    p1a = kernel.addRectangle(0.0, dy, 0.0, gap_width_μm*0.75, gap_width_μm)
+    p2a = kernel.addRectangle(length_μm - gap_width_μm*0.75, dy, 0.0, gap_width_μm*0.75, gap_width_μm)
     dy += gap_width_μm + trace_width_μm
-    p1b = kernel.addRectangle(0.0, dy, 0.0, gap_width_μm/2, gap_width_μm)
-    p2b = kernel.addRectangle(length_μm - gap_width_μm/2, dy, 0.0, gap_width_μm/2, gap_width_μm)
+    p1b = kernel.addRectangle(0.0, dy, 0.0, gap_width_μm*0.75, gap_width_μm)
+    p2b = kernel.addRectangle(length_μm - gap_width_μm*0.75, dy, 0.0, gap_width_μm*0.75, gap_width_μm)
 
     # Embedding
     geom_dimtags = filter(x -> x[1] == 2 || x[1] == 3, kernel.getEntities())
@@ -621,13 +656,6 @@ function generate_cpw_lumped_mesh(;
         )
     )
     println("\nextruded_trace:", extruded_trace)
-    inner_gaps = last.(
-        collect(
-            Iterators.flatten(
-                geom_map[findall(x -> x[1] == 2 && x[2] in [n2, n3], geom_dimtags)]
-            )
-        )
-    )
     ##
     gap = last.(
         collect(
@@ -648,6 +676,7 @@ function generate_cpw_lumped_mesh(;
 
     trace_group = gmsh.model.addPhysicalGroup(2, trace, -1, "trace")
     gap_group = gmsh.model.addPhysicalGroup(2, gap, -1, "gap")
+    trace_top_group = gmsh.model.addPhysicalGroup(2, extruded_trace, -1, "trace2")
 
 
     # Generate mesh
@@ -669,33 +698,22 @@ function generate_cpw_lumped_mesh(;
             gmsh.model.getBoundary([(2, z) for z in trace], false, false, false)
         )
     )
-    ##
-    println("\ntrace_points:", trace_points)
-    println("\ntrace_curves:", trace_curves)
-    fieldSurfaceLists = []
-    for x in inner_gaps
-        push!(fieldSurfaceLists, x)
-    end
-    for x in extruded_metal_boundary
-        push!(fieldSurfaceLists, x)
-    end
-    println("\nfieldSurfaceLists:", fieldSurfaceLists)
-    ##
+
 
     gmsh.model.mesh.field.add("Distance", 1)
-    gmsh.model.mesh.field.setNumbers(1, "PointsList", trace_points)
-    gmsh.model.mesh.field.setNumbers(1, "CurvesList", trace_curves)
+    #gmsh.model.mesh.field.setNumbers(1, "PointsList", trace_points)
+    #gmsh.model.mesh.field.setNumbers(1, "CurvesList", trace_curves)
     gmsh.model.mesh.field.setNumbers(1, "SurfacesList", trace)
-    #gmsh.model.mesh.field.setNumber(1, "Sampling", ceil(length_μm / l_trace))
-    gmsh.model.mesh.field.setNumber(1, "Sampling", 1000)
+    gmsh.model.mesh.field.setNumber(1, "Sampling", ceil(length_μm / l_trace))
+    #gmsh.model.mesh.field.setNumber(1, "Sampling", 1000)
 
     
     gmsh.model.mesh.field.add("Threshold", 2)
     gmsh.model.mesh.field.setNumber(2, "InField", 1)
     gmsh.model.mesh.field.setNumber(2, "SizeMin", l_trace) ##prima l_trace
     gmsh.model.mesh.field.setNumber(2, "SizeMax", l_farfield) ##prima l_farfield
-    gmsh.model.mesh.field.setNumber(2, "DistMin", 1.0 * trace_width_μm) ##prima 1.0
-    gmsh.model.mesh.field.setNumber(2, "DistMax", 3.0 * trace_width_μm) ##prima 3.0
+    gmsh.model.mesh.field.setNumber(2, "DistMin", 1.0 * trace_width_μm)
+    gmsh.model.mesh.field.setNumber(2, "DistMax", 0.7 * air_distance_um)
     
     #=
     ##
@@ -745,6 +763,9 @@ function generate_cpw_lumped_mesh(;
         end
         println("Farfield boundaries: ", farfield_group)
         println("Metal boundaries: ", trace_group)
+        if length(trace_top_group) > 0
+            println("Extruded metal boundaries: ", trace_top_group)
+        end
         println("Negative trace boundaries: ", gap_group)
 
         println("\nMultielement lumped ports:")
@@ -1112,17 +1133,19 @@ end
 
 #=
 generate_cpw_wave_mesh(
-    filename="cpw.msh2",
+    filename="cpw_port720x450.msh2",
     refinement=0,
     order=1,
     trace_width_μm=90.0,
     gap_width_μm=100.0,
-    boundary_distance_um=400.0,
+    boundary_distance_um=300.0,
+    ground_width_μm=90.0,
     substrate_height_μm=25.0,
     metal_height_μm=20.0,
     remove_metal_vol=false,
     length_μm=1000.0,
     air_distance_um=300.0,
+    coax_ports=false,
     verbose=5,
     gui=true
 )
@@ -1130,21 +1153,20 @@ generate_cpw_wave_mesh(
 
 
 generate_cpw_lumped_mesh(
-    filename="cpw_port50um.msh2",
+    filename="cpw_port75um.msh2",
     refinement=0,
     order=1,
     trace_width_μm=90.0,
     gap_width_μm=100.0,
-    boundary_distance_um=400.0,
+    boundary_distance_um=300.0,
     substrate_height_μm=25.0,
     metal_height_μm=20.0,
     remove_metal_vol=false,
-    length_μm = 10000.0,
+    length_μm = 1000.0,
     air_distance_um=300.0,
     verbose=5,
     gui=true
 )
-
 
 #=
 generate_cpw_double_traces_lumped_mesh(

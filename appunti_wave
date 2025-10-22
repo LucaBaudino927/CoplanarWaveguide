@@ -1,0 +1,64 @@
+Combinazioni di attributes per wave port simulation:
+
+Consistente con il punto a 3 GHz di COMSOL: 
+{ "PEC":[9,11], "Absorbing":[8]} 9,11 = trace+trace_top, 8 = farfield, end1+end2 sono in modo implicito PMC
+"Boundaries":
+  {
+    "PEC":
+    {
+      "Attributes": [9, 11]  // metal trace + end boundaries // oggetti 2D
+    },
+    "Absorbing":
+    {
+      "Attributes": [8],  //farfield  // oggetti 2D
+      "Order": 1
+    }
+    ...
+  }
+
+
+VERY GOOD (non è costante con la frequenza e i valori hanno abbastanza senso seppur distanti da Sierra): 
+{ "PEC":[9, 11], "Absorbing":[None]},
+{ "PEC":[6, 7, 8, 9, 11], "Absorbing":[None]},
+{ "PEC":[9, 11], "Absorbing":[None], "PMC":[12]},
+{ "PEC":[9, 11], "Absorbing":[8], "PMC":[12]}
+
+GOOD (Primo valore "decente" ma costante vs frequenza):
+{ "PEC":[6, 7, 8, 9], "Absorbing":[None]},
+{ "PEC":[9,11], "Absorbing":[6, 7, 8]},
+{ "PEC":[11], "Absorbing":[None]},
+{ "PEC":[9], "Absorbing":[6, 7, 8]},
+{ "PEC":[None], "Absorbing":[8], "PMC":[10]},
+{ "PEC":[9], "Absorbing":[8], "PMC":[10]},
+{ "PEC":[6, 7], "Absorbing":[8], "PMC":[10]}
+
+BAD (Trasmissione attenuata e riflessione alta e spesso costanti vs frequenza):
+{ "PEC":[6, 7, 9], "Absorbing":[None]},
+{ "PEC":[9,11], "Absorbing":[6, 7, 8]},
+{ "PEC":[9], "Absorbing":[None]},
+{ "PEC":[11], "Absorbing":[None]},
+{ "PEC":[6, 7], "Absorbing":[8], "WavePortPEC":[4,5]},
+{ "PEC":[6, 7, 9], "Absorbing":[8], "WavePortPEC":[4,5]},
+{ "PEC":[9], "Absorbing":[8]},
+{ "PEC":[9], "Absorbing":[8], "WavePortPEC":[4,5]},
+{ "PEC":[6, 7, 9, 11], "Absorbing":[8]}, 
+{ "PEC":[6, 7, 9, 11], "Absorbing":[8], "WavePortPEC":[4,5]},
+{ "PEC":[6, 7, 9, 11], "Absorbing":[None]},
+{ "PEC":[6, 7, 9, 11], "Absorbing":[8], "PMC":[12]},
+{ "PEC":[6, 7, 9, 11], "Absorbing":[None], "PMC":[12]},
+{ "PEC":[None], "Absorbing":[8], "PMC":[12]},
+{ "PEC":[None], "Absorbing":[8], "PMC":[12], "WavePortPEC":[9,11]},
+{ "PEC":[None], "Absorbing":[8], "WavePortPEC":[9,11]},
+{ "PEC":[None], "Absorbing":[None], "WavePortPEC":[9,11]}
+
+CRASH (non viene trovato un valore per kn della porta):
+{ "PEC":[6, 7], "Absorbing":[8]},
+{ "PEC":[6, 7, 8], "Absorbing":[None]},
+{ "PEC":[9, 11], "Absorbing":[8], "WavePortPEC":[10]},
+{ "PEC":[9, 10, 11], "Absorbing":[8]}
+{In generale quando manca 9 o 11 o entrambi in "PEC"}
+
+
+
+Ancora da provare:
+{ "PEC":[11], "Absorbing":[8]}, 
