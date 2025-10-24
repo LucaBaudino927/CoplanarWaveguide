@@ -259,5 +259,4 @@ function cpw_impedance_v2(; w=90, s=100, h=25, ϵᵣ=3.3)
     return Z₀
 end
 
-
-cpw_impedance_v2(w=90, s=100, h=25, ϵᵣ=3.3)
+cpw_impedance()
