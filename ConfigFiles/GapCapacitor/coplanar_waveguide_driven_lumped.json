@@ -1,0 +1,153 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/Alluminio/Lumped/GapCapacitor/cpw_GC_lumped_22um_105ohm_cond_32894736_port0.075_100um_NOPEC_Absorbing_4"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/GapCapacitor/gap_cap_cpw_lumped_mesh22.5um_port37.5um_length500.0um.msh2", //"mesh/Test_nuova_geometria_1mm/cpw_port75um_lumped_22.5um.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement":
+    {
+      //"Tol": 1.0e-2,
+      //"MaxIts": 2
+    }
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [1],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [3],  // Aluminium
+        "Conductivity": 32894736.84 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
+      },
+      {
+        "Attributes": [2],  // Kapton
+        "Permittivity": 3.3,
+        "LossTan": 0.0013
+      }
+    ],
+    "Postprocessing":
+    {
+      "Energy":
+      [
+        {
+          "Index": 1,
+          "Attributes": [2]
+        }
+      ],
+      "Probe":
+      [
+        {
+          "Index": 1,
+          "Center": [0, 390, 0] // left side of gnd1
+        },
+        {
+          "Index": 2,
+          "Center": [0, 490, 0] // rigth side of signal
+        }
+      ]
+    }
+  },
+  "Boundaries":
+  {
+    //"PEC":
+    //{
+    //  "Attributes": [9]  // metal boundaries
+    //},
+    "Absorbing":
+    {
+      "Attributes": [4],  //farfield
+      "Order": 1
+    },
+    "LumpedPort":
+    [
+      {
+        "Index": 1,
+        "R": 105,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
+        "L": 0.0,
+        "C": 0.0,
+        "Excitation": 1,
+        "Active": true,
+        "Elements":
+        [
+          {
+            "Attributes": [5], // p1a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [7], // p1b
+            "Direction": "-Y"
+          }
+        ]
+      },
+      {
+        "Index": 2,
+        "R": 105,  // Ω, 2-element uniform
+        "L": 0.0,
+        "C": 0.0,
+        "Active": true,
+        "Elements":
+        [
+          {
+            "Attributes": [6], // p2a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [8], // p2b
+            "Direction": "-Y"
+          }
+        ]
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    "Driven":
+    {
+      "Samples":
+      [
+        {
+          "Type": "Point",
+          "Freq": [0.05] // GHz
+        },
+        //{
+        //   "Type": "Linear",
+        //   "MinFreq": 0.1,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.1 // GHz
+        //},
+
+        {
+          "Type": "Linear",
+          "MinFreq": 0.1,  // GHz
+          "MaxFreq": 3.1,  // GHz
+          "FreqStep": 0.2 // GHz
+        }
+
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.5] // GHz
+       // }
+       
+      ]//,"Save": [0.05, 3.0]
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,  //prima 1.0e-8
+      "MaxIts": 200   //prima 200
+    }
+  }
+}

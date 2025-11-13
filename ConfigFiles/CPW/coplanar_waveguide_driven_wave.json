@@ -1,0 +1,144 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/Rame/NuoviTestPEC/cpw_wave_22um_porte720x450_cond_59600000_NOPEC_NOAbsorbing_WavePortPEC_9-11"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/Test_nuova_geometria_1mm/cpw_port720x450_wave_22.5um.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement": {}
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [1],  // Air  // oggetti 3D
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [3],  // Aluminium  // oggetti 3D
+        //"Permeability": 1.0,
+        //"Permittivity": 1.0,
+        "Conductivity": 59600000 // S/m     Rame:  59600000    Al: 33112582.78
+        
+      },
+      {
+        "Attributes": [2],  // Kapton  // oggetti 3D
+        //"Permeability": 1.0,
+        "Permittivity": 3.3,
+        "LossTan": 0.0013
+      }
+    ],
+    "Postprocessing":
+    {
+      "Probe":
+      [
+        {
+            "Index": 1,
+            "Center": [0.0, 390.0, 0.0]
+        },
+        {
+            "Index": 2,
+            "Center": [0.0, 490.0, 0.0]
+        }
+      ]
+    }
+  },
+  "Boundaries":
+  {
+    //"PEC":
+    //{
+    //  "Attributes": [6, 7, 9, 11]
+    //},
+    //"Absorbing":
+    //{
+    //  "Attributes": [8],  //farfield  // oggetti 2D
+    //  "Order": 1
+    //},
+    //"PMC":
+    //{
+    //  "Attributes": [12]
+    //},
+    "WavePortPEC":
+    {
+      "Attributes": [9, 11]
+    },
+    "WavePort":
+    [
+      {
+        "Index": 1,
+        "Attributes": [4], // port1  // oggetti 2D
+        "Excitation": true,
+        "Mode": 1
+      },
+      {
+        "Index": 2,
+        "Attributes": [5], // port2  // oggetti 2D
+        "Excitation": false
+        //"Mode": 1
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    //"Driven":
+    //{
+    //  "Samples":
+    //  [
+    //    {
+    //      "Type": "Linear",
+    //      "MinFreq": 2.0,  // GHz
+    //      "MaxFreq": 32.0,  // GHz
+    //      "FreqStep": 0.1  // GHz
+    //    }
+    //  ],
+    //  //"Save": [2.0, 32.0],
+    //  "AdaptiveTol": 1.0e-3
+    //},
+    "Driven":
+    {
+      "Samples":
+      [
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.01]  // GHz
+        //},
+        {
+          "Type": "Linear",
+          "MinFreq": 0.01,  // GHz
+          "MaxFreq": 0.05,  // GHz
+          "FreqStep": 0.04 // GHz
+        },
+        {
+          "Type": "Linear",
+          "MinFreq": 0.1,  // GHz
+          "MaxFreq": 0.4,  // GHz
+          "FreqStep": 0.1 // GHz
+        },
+        {
+          "Type": "Linear",
+          "MinFreq": 0.5,  // GHz
+          "MaxFreq": 3.0,  // GHz
+          "FreqStep": 0.5 // GHz
+        }
+      ],
+      "Save": [0.01, 3.0]
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,  //prima 1.0e-8
+      "MaxIts": 200   //prima 200
+    }
+  }
+}
+

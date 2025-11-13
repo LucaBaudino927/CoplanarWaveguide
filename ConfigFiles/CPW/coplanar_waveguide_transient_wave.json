@@ -1,0 +1,90 @@
+{
+  "Problem":
+  {
+    "Type": "Transient",
+    "Verbose": 2,
+    "Output": "postpro/coplanar_waveguide_transient_wave"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/coplanar_waveguide_wave.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement": {}
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [3002],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [3003, 3004, 3005],  // Aluminium
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "Conductivity": 33112582.78
+        
+      },
+      {
+        "Attributes": [3001],  // Kapton
+        "Permeability": 1.0,
+        "Permittivity": 3.3,
+        "LossTan": 0.0
+      }
+    ]
+  },
+  "Boundaries":
+  {
+    "PEC":
+    {
+      "Attributes": [2001, 2002, 2003, 2006, 2007, 2008, 2009]  // line boundaries + gnd ports
+    },
+    "Absorbing":
+    {
+      "Attributes": [2010],  //farfield
+      "Order": 1
+    },
+    "WavePort":
+    [
+      {
+        "Index": 1,
+        "Attributes": [2004], //signal_port_in
+        "Mode": 1,
+        "Offset": 0.0,
+        "Excitation": true
+      },
+      {
+        "Index": 2,
+        "Attributes": [2005], //signal_port_out
+        "Mode": 1,
+        "Offset": 0.0
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    "Transient":
+    {
+      "Type": "GeneralizedAlpha",
+      "Excitation": "ModulatedGaussian",
+      "ExcitationFreq": 10.0,  // GHz
+      "ExcitationWidth": 0.05,  // ns, BW ∼ 1/τ
+      "MaxTime": 1.0,  // ns
+      "TimeStep": 0.005,  // ns
+      "SaveStep": 10
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,
+      "MaxIts": 200
+    }
+  }
+}
+
