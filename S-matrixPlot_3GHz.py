@@ -18,7 +18,7 @@ BASE_PATH_102OHM_DIVERSE_CONDUCIBILITA = Path('postpro/Rame/Lumped/CPW/Impedenza
 BASE_PATH_TEST = Path('postpro/Rame/Lumped/CPW/Test_diversi_parametri_e_geometrie')
 BASE_PATH_DIVERSE_PORTE = BASE_PATH_TEST / 'NO_PEC/Diverse_porte'
 BASE_PATH_NUOVI_TEST_PEC = Path('postpro/Rame/CPW/NuoviTestPEC')
-BASE_PATH_REPORT = Path('postpro/Rame/CPW/Report')
+BASE_PATH_REPORT = Path('postpro/Rame/Lumped/CPW/Report')
 
 IMPEDANCES = [100, 102, 102.1, 102.5]
 CONDUCTIVITIES = [33112582, 57471264, 59600000, 62500000, 72500000] #S/m
@@ -31,8 +31,8 @@ CONDUCTIVITY_COPPER = 59600000  # S/m
 CONDUCTIVITY_ALUMINIUM = 32894736.84 #S/m = 1/3.04x10-8  #33112582.78 #S/m 
 SKIN_EFF_FRACTION = 0.5  # Fraction increase in conductor losses to consider skin effect relevant
 Z0 = 105  # Characteristic impedance in Ohm
-CPW_LENGTH = 100e-6
-SIMULATION_CONDUCTIVITY = CONDUCTIVITY_ALUMINIUM
+CPW_LENGTH = 10000e-6
+SIMULATION_CONDUCTIVITY = CONDUCTIVITY_COPPER
 
 # --- FUNCTION DEFINITIONS ---
 
@@ -1119,7 +1119,7 @@ if __name__ == '__main__':
                             '[FGCPW-Aluminum]', sierra_path=SIERRA_PATH / 'port-S_50MHz_3GHz.csv')
 
     if SIMULATION_CONDUCTIVITY == CONDUCTIVITY_COPPER and CPW_LENGTH == 1000e-6:
-        plot_single_simulation('postpro/Rame/TestPEC_and_small_ports/cpw_lumped_22um_105ohm_cond_59600000_port0.0075_1000um_PEC_9_Absorbing_4/port-S.csv',
+        plot_single_simulation('postpro/Rame/Lumped/CPW/TestPEC_and_small_ports/cpw_lumped_22um_105ohm_cond_59600000_port0.0075_1000um_PEC_9_Absorbing_4/port-S.csv',
                                 calculate_skin_effect_threshold(SKIN_EFF_FRACTION, SIMULATION_CONDUCTIVITY, CPW_LENGTH, 90e-6, 20e-6),
                                 '[FGCPW-Copper_PEC_9_and_port_0.75%]', sierra_path=SIERRA_PATH / 'port-S_50MHz_3GHz.csv')
         
@@ -1137,13 +1137,18 @@ if __name__ == '__main__':
     """
     Analisi della CPW short del paper "Study of the Radio Frequency (RF) performance 
     of a Wafer-Level Package (WLP) with Through Silicon Vias (TSVs) for the integration 
-    of RF-MEMS and micromachined waveguides in the context of 5G and Internet of Things (IoT) applications: 
+    of RF-MEMS and micromachined waveguides in the context of 5G and Internet of Things (IoT) applications:
     Part 1—validation of the 3D modelling approach"
     (design A)
     """
-    calculate_Z0_from_conductor_losses(trace_width=116e-6, trace_thickness=20e-6, gap_width=65e-6, substrate_thickness=525e-6, dielectric_constant=11.7)
-    plot_data_vs_frequency('postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_22um_40ohm_cond_58800000_port0.075_1350um_NOPEC_Absorbing_4',
-                           '[Cu-HRS]', #HRS = High Resistivity Silicon @dielectric constant=11.7 and loss tangent=0.0013 (?)
+    calculate_Z0_from_conductor_losses(trace_width=116e-6, trace_thickness=0.5e-6, gap_width=65e-6, substrate_thickness=525e-6, dielectric_constant=11.7)
+    #design rame con piste spesse 20 um
+    #plot_data_vs_frequency('postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_40ohm_cond_58800000_port0.075_1350um_NOPEC_Absorbing_4',
+    #                       '[Cu-HRS]', #HRS = High Resistivity Silicon @dielectric constant=11.7 and loss tangent=0.0013 (?)
+    #                       one_port_only=True)
+    #design in oro con piste spesse 0.5 um
+    plot_data_vs_frequency('postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_25ohm_cond_45000000_port0.075_1350um_NOPEC_Absorbing_4',
+                           '[Au-HRS]', #HRS = High Resistivity Silicon @dielectric constant=11.7 and loss tangent=0.0013 (?)
                            one_port_only=True)
     
     

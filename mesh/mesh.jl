@@ -402,37 +402,8 @@ function generate_cpw_wave_mesh(;
     end
 
     return gmsh.finalize()
+
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -615,6 +586,7 @@ function generate_cpw_lumped_mesh(;
 
     if length(metal_domains) > 0 && remove_metal_vol
         remove_dimtags = [(3, x) for x in metal_domains]
+        println("boundaries of metal domains: ", gmsh.model.getBoundary([(3, z) for z in metal_domains],false,false,false))
         for tag in last.(
             filter(
                 x -> x[1] == 2,
@@ -630,8 +602,10 @@ function generate_cpw_lumped_mesh(;
             if abs(normal[1]) == 1.0
                 push!(remove_dimtags, (2, tag))
             end
+            println("normal for tag ", tag, ": ", normal)
         end
         kernel.remove(remove_dimtags)
+        println("removed dimtags: ", remove_dimtags)
         kernel.synchronize()
         filter!.(x -> !(x in remove_dimtags), geom_map)
         empty!(metal_domains)
@@ -1345,17 +1319,16 @@ function generate_open_short_cpw_lumped_mesh(;
     end
     metal = typeof(metal_boundary)(undef, 0)
     if metal_height_μm > 0
-        metal_dimtags =
-            kernel.extrude([(2, x) for x in metal_boundary], 0.0, 0.0, metal_height_μm)
-        metal = [x[2] for x in filter(x -> x[1] == 3, metal_dimtags)]
+        metal_dimtags = kernel.extrude([(2, x) for x in metal_boundary], 0.0, 0.0, metal_height_μm)
         ##
         extruded_metal_boundary = [x[2] for x in filter(x -> x[1] == 2, metal_dimtags)]
         metal_volumes = [x[2] for x in filter(x -> x[1] == 3, metal_dimtags)]
         filter!(x -> !(x == metal_boundary), extruded_metal_boundary)
-        println("\nmetal_boundary:", metal_boundary)
-        println("\nmetal_dimtags:", metal_dimtags)
-        println("\nextruded_metal_boundary:", extruded_metal_boundary)
-        println("\nmetal_volume:", metal_volumes)
+        println("metal_boundary:", metal_boundary)
+        println("metal_dimtags:", metal_dimtags)
+        println("extruded_metal_boundary:", extruded_metal_boundary)
+        println("metal_volume:", metal_volumes)
+        println("metal:", metal)
         ##
         for domain in metal
             _, boundary = kernel.getSurfaceLoops(domain)
@@ -1388,10 +1361,11 @@ function generate_open_short_cpw_lumped_mesh(;
     metal_domains = last.(
         collect(
             Iterators.flatten(
-                geom_map[findall(x -> x[1] == 3 && x[2] in metal, geom_dimtags)]
+                geom_map[findall(x -> x[1] == 3 && x[2] in metal_volumes, geom_dimtags)]
             )
         )
     )
+    println("metal_domains:", metal_domains)
 
     si_domain = last.(geom_map[findfirst(x -> x == (3, substrate), geom_dimtags)])
     @assert length(si_domain) == 1
@@ -1404,6 +1378,7 @@ function generate_open_short_cpw_lumped_mesh(;
 
     if length(metal_domains) > 0 && remove_metal_vol
         remove_dimtags = [(3, x) for x in metal_domains]
+        println("boundaries of metal domains: ", gmsh.model.getBoundary([(3, z) for z in metal_domains],false,false,false))
         for tag in last.(
             filter(
                 x -> x[1] == 2,
@@ -1419,16 +1394,20 @@ function generate_open_short_cpw_lumped_mesh(;
             if abs(normal[1]) == 1.0
                 push!(remove_dimtags, (2, tag))
             end
+            println("normal for tag ", tag, ": ", normal)
         end
         kernel.remove(remove_dimtags)
+        println("removed dimtags: ", remove_dimtags)
         kernel.synchronize()
         filter!.(x -> !(x in remove_dimtags), geom_map)
         empty!(metal_domains)
     end
+    
 
     air_domain_group = gmsh.model.addPhysicalGroup(3, [air_domain], -1, "air")
     si_domain_group = gmsh.model.addPhysicalGroup(3, [si_domain], -1, "kapton")
     metal_domain_group = gmsh.model.addPhysicalGroup(3, metal_domains, -1, "metal")
+    println("metal_domain_group:", metal_domain_group)
 
     farfield = last.(
         collect(
@@ -3423,7 +3402,7 @@ generate_open_short_cpw_lumped_mesh(
     ground_width_μm=300.0,
     boundary_distance_um=300.0,
     substrate_height_μm=525.0,
-    metal_height_μm=20.0,
+    metal_height_μm=0.5,
     remove_metal_vol=false,
     length_μm = 1350.0,
     air_distance_um=100.0,

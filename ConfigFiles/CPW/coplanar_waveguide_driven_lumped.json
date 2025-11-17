@@ -3,11 +3,11 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/Alluminio/Lumped/CPW/TestRefinedMesh/cpw_lumped_2um_105ohm_cond_32894736_port0.075_100um_NOPEC_Absorbing_4"
+    "Output": "postpro/Alluminio/Lumped/CPW/InfiniteImpedance/cpw_lumped_22um_105ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4"
   },
   "Model":
   {
-    "Mesh": "mesh/RefinedMesh/cpw_lumped_mesh2.0um_port7.5um_length100.0um.msh2", //"mesh/Test_nuova_geometria_1mm/cpw_port75um_lumped_22.5um.msh2",
+    "Mesh": "mesh/CPW/cpw_lumped_mesh22.5um_port75.0um_length1000.0um.msh2",
     "L0": 1.0e-6,  // μm
     "Refinement":
     {
@@ -91,7 +91,7 @@
       },
       {
         "Index": 2,
-        "R": 105,  // Ω, 2-element uniform
+        "R": 9999999999999,  // Ω, 2-element uniform
         "L": 0.0,
         "C": 0.0,
         "Active": true,

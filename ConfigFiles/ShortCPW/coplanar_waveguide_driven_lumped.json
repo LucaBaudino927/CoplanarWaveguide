@@ -3,7 +3,7 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/Alluminio/Lumped/ShortCPW/cpw_lumped_22um_40ohm_cond_58800000_port0.075_1350um_NOPEC_Absorbing_4"
+    "Output": "postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_25ohm_cond_45000000_port0.075_1350um_NOPEC_Absorbing_4"
   },
   "Model":
   {
@@ -27,7 +27,7 @@
       },
       {
         "Attributes": [3],  // Aluminium
-        "Conductivity": 58800000 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
+        "Conductivity": 45000000 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
       },
       {
         "Attributes": [2],  // Kapton
@@ -72,7 +72,7 @@
     [
       {
         "Index": 1,
-        "R": 40,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
+        "R": 25.7880602388687,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
         "L": 0.0,
         "C": 0.0,
         "Excitation": 1,
