@@ -3,11 +3,11 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/Alluminio/Lumped/OpenCPW/cpw_lumped_22um_105ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4"
+    "Output": "postpro/Alluminio/Lumped/OpenCPW/cpw_lumped_22um_50ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4"
   },
   "Model":
   {
-    "Mesh": "mesh/OpenCPW/open_cpw_lumped_mesh22.5um_port75.0um_length1000.0um.msh2", //"mesh/Test_nuova_geometria_1mm/cpw_port75um_lumped_22.5um.msh2",
+    "Mesh": "mesh/OpenCPW/open_cpw_lumped_mesh22.5um_port600.0um_length8000.0um.msh2", //"mesh/Test_nuova_geometria_1mm/cpw_port75um_lumped_22.5um.msh2",
     "L0": 1.0e-6,  // μm
     "Refinement":
     {
@@ -21,9 +21,9 @@
     [
       {
         "Attributes": [1],  // Air
-        "Permeability": 1.0,
-        "Permittivity": 1.0,
-        "LossTan": 0.0
+        "Permeability": 1, //1.00000037,
+        "Permittivity": 1, //1.00058986,
+        "LossTan": 0 //5.49695e-8 
       },
       {
         "Attributes": [3],  // Aluminium
@@ -72,7 +72,7 @@
     [
       {
         "Index": 1,
-        "R": 105,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
+        "R": 50,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
         "L": 0.0,
         "C": 0.0,
         "Excitation": 1,
@@ -112,8 +112,8 @@
 
         {
           "Type": "Linear",
-          "MinFreq": 0.1,  // GHz
-          "MaxFreq": 3.1,  // GHz
+          "MinFreq": 0.2,  // GHz
+          "MaxFreq": 3.0,  // GHz
           "FreqStep": 0.2 // GHz
         }
 

@@ -30,9 +30,11 @@ SIERRA_PATH = Path('postpro/Rame/Lumped/CPW/SierraData_122ohm')
 CONDUCTIVITY_COPPER = 59600000  # S/m
 CONDUCTIVITY_ALUMINIUM = 32894736.84 #S/m = 1/3.04x10-8  #33112582.78 #S/m 
 SKIN_EFF_FRACTION = 0.5  # Fraction increase in conductor losses to consider skin effect relevant
-Z0 = 105  # Characteristic impedance in Ohm
-CPW_LENGTH = 10000e-6
+Z0_STANDARD_CPW = 105  # Characteristic impedance in Ohm of my 90-100-20 CPW
+Z0_CALKIT = 50
+CPW_LENGTH = 1000e-6
 SIMULATION_CONDUCTIVITY = CONDUCTIVITY_COPPER
+SIMULATION_Z0 = Z0_CALKIT
 
 # --- FUNCTION DEFINITIONS ---
 
@@ -258,7 +260,7 @@ def describe_helper(labels, dof, chi2vsSierra=None, chi2vsIPC=None):
     return value
 
 
-def calculate_skin_effect_threshold(x = SKIN_EFF_FRACTION, conductivity=SIMULATION_CONDUCTIVITY, trace_length=CPW_LENGTH, trace_width=90e-6, trace_thickness=20e-6, Z0=Z0):
+def calculate_skin_effect_threshold(x = SKIN_EFF_FRACTION, conductivity=SIMULATION_CONDUCTIVITY, trace_length=CPW_LENGTH, trace_width=90e-6, trace_thickness=20e-6, Z0=SIMULATION_Z0):
     
     """
     Metodo 1:
@@ -331,7 +333,7 @@ def calculate_dielectric_losses(frequency=3, trace_length=CPW_LENGTH, trace_widt
     return float(Ad) * (trace_length)  # Convert to dB for the given trace length in meters
 
 
-def calculate_conductor_losses(frequency=3, conductivity=SIMULATION_CONDUCTIVITY, trace_width=90e-6, trace_thickness=20e-6, trace_length=CPW_LENGTH, gap_width=100e-6, Z0=Z0):
+def calculate_conductor_losses(frequency=3, conductivity=SIMULATION_CONDUCTIVITY, trace_width=90e-6, trace_thickness=20e-6, trace_length=CPW_LENGTH, gap_width=100e-6, Z0=SIMULATION_Z0):
     """
     Fraction of power loss in the conductor for a CPW line.
     It calculates Ac in dB/m and return the value in dB.
@@ -340,19 +342,16 @@ def calculate_conductor_losses(frequency=3, conductivity=SIMULATION_CONDUCTIVITY
     delta = np.sqrt(1 / (np.pi * frequency*1e9 * mu0 * conductivity))  # Skin depth
 
     Rs = (1 + 1j) / (conductivity * delta) # Surface resistance in Ohm
+    if delta > trace_thickness: Rs = (1 + 1j) / (conductivity * trace_thickness)
     Rstrip = Rs.real / (trace_width) # Ohm/m
     # Conductor loss in dB/m
-    if delta > trace_thickness:
-        Ac = (8.686) / (2 * Z0 * conductivity * trace_thickness * trace_width)
-    else:
-        Ac = (8.686 * Rstrip) / (2 * Z0)
+    Ac = (8.686 * Rstrip) / (2 * Z0)
 
     
     '''
     Test dal paper: "A new analytical, cad-oriented model for the ohmic and radiation loesses of asymmetric coplanar waveguides in
     hybrid and monolithic mic's", G. Ghione, C.U. Naldi
     '''
-    if delta > trace_thickness: Rs = (1 + 1j) / (conductivity * trace_thickness)
     a = trace_width / 2
     b = a + gap_width
     ks = a / b
@@ -374,9 +373,12 @@ def calculate_conductor_losses(frequency=3, conductivity=SIMULATION_CONDUCTIVITY
     e_eff = 1 + ((3.3 - 1) / 2) * (K(k1prime)/K(k1)) * (K(k)/K(kprime))
     '''
 
-    Ac = 8.686 * Rs.real * np.sqrt(3.3) / (480 * np.pi * K(ks) * K(ksprime) * (1 - ks*ks)) * (1/a * (np.pi + np.log(8 * np.pi * a * (1 - ks) / (trace_thickness * (1 + ks)))) + 
+    InverseIntegral = (240 * np.pi * K(ks) * K(ksprime) * (1 - ks*ks)) / (1/a * (np.pi + np.log(8 * np.pi * a * (1 - ks) / (trace_thickness * (1 + ks)))) + 
                                                                                                 1/b * (np.pi + np.log(8 * np.pi * b * (1 - ks) / (trace_thickness * (1 + ks)))))
-    
+    Z0_calc = InverseIntegral / trace_width / np.sqrt(3.3)
+    #print(f'Z0: {Z0_calc}')
+    Ac = 8.686 * Rstrip / (2 * Z0_calc)
+
     print(f"Frequency: {frequency:.2f} GHz, Skin Depth: {delta*1e6:.4f} um, e_eff: {e_eff}, Rs: {Rs.real:.4f} Ohm, Conductor Loss: {1e-2 * Ac} dB/cm, Conductor Loss: {Ac * trace_length} dB")
 
     return float(Ac) * (trace_length)  # Convert to dB for the given trace length in meters
@@ -425,8 +427,9 @@ def calculate_Z0_from_conductor_losses(trace_width=90e-6, trace_thickness=20e-6,
     #Ac = 8.686 * Rs.real * np.sqrt(dielectric_constant) / (480 * np.pi * K(ks) * K(ksprime) * (1 - ks*ks)) * (1/a * (np.pi + np.log(8 * np.pi * a * (1 - ks) / (trace_thickness * (1 + ks)))) + 
     #                                                                                            1/b * (np.pi + np.log(8 * np.pi * b * (1 - ks) / (trace_thickness * (1 + ks)))))
     #print(f'CPW impedance v1: {float((30 * np.pi) / np.sqrt(dielectric_constant) * (K(ksprime)/K(ks))):.2f} Ohm')
-    Z0 = (1/trace_width) * (240 * np.pi * K(ks) * K(ksprime) * (1 - ks*ks)) / (np.sqrt(dielectric_constant) * (1/a * (np.pi + np.log(8 * np.pi * a * (1 - ks) / (trace_thickness * (1 + ks)))) + 1/b * (np.pi + np.log(8 * np.pi * b * (1 - ks) / (trace_thickness * (1 + ks))))))
-
+    InverseIntegral = (240 * np.pi * K(ks) * K(ksprime) * (1 - ks*ks)) / (1/a * (np.pi + np.log(8 * np.pi * a * (1 - ks) / (trace_thickness * (1 + ks)))) + 
+                                                                                                1/b * (np.pi + np.log(8 * np.pi * b * (1 - ks) / (trace_thickness * (1 + ks)))))
+    Z0 = InverseIntegral / trace_width / np.sqrt(3.3)
     #versione approssimata, infatti non funziona
     #print(f'CPW impedance v1: {float((30 * np.pi) / np.sqrt(3.3) * (K(ksprime)/K(ks))):.2f} Ohm')
 
@@ -513,7 +516,7 @@ def estimate_systematic_uncertainty():
 
     return s11_errors, s21_errors
 
-def calculate_Z_and_propagation_constant_from_S_matrix(s11_all, s11_phases_all, s21_all, s21_phases_all, Z0=Z0, trace_length=CPW_LENGTH):
+def calculate_Z_and_propagation_constant_from_S_matrix(s11_all, s11_phases_all, s21_all, s21_phases_all, Z0=SIMULATION_Z0, trace_length=CPW_LENGTH):
     
     def back_from_db(x_db: float) -> float:
         return 10.0**(x_db / 20.0)
@@ -630,8 +633,8 @@ def calculate_RGLC_and_plot_Z0(Z, gamma, x_all, labels, colors=COLORS):
     expected_s11 = []
     print(f'len(Z0_calc)={len(Z0_calc)}, len(x_all)={len(x_all)}')
     for x, y in zip(x_all, Z0_calc):
-        print(f'20*np.log(np.abs((Z0 - y)/(Z0 + y)))={20*np.log(np.abs((Z0 - y)/(Z0 + y)))}, Z0={Z0}, y={y}, x={x}')
-        expected_s11.append( 20*np.log(1/(1 - (np.abs((Z0 - y)/(Z0 + y)))*(np.abs((Z0 - y)/(Z0 + y))) )) )
+        #print(f'20*np.log(np.abs((Z0 - y)/(Z0 + y)))={20*np.log(np.abs((Z0 - y)/(Z0 + y)))}, Z0={Z0}, y={y}, x={x}')
+        expected_s11.append( 20*np.log(1/(1 - (np.abs((SIMULATION_Z0 - y)/(SIMULATION_Z0 + y)))*(np.abs((SIMULATION_Z0 - y)/(SIMULATION_Z0 + y))) )) )
     for x, y, label, color in zip(x_all, expected_s11, labels, colors):
         ax1.errorbar(x, y, xerr=0, yerr=0, linestyle='solid', marker='o', markersize=MARKERSIZE)
     ax1.set_title('Expected S11 vs Frequency', fontsize=18)
@@ -654,7 +657,7 @@ def calculate_RGLC_and_plot_Z0_from_the_105Ohm_simulation(show_plot=True):
     path = BASE_PATH_REPORT / 'DiverseMesh/DiverseMesh50MHz/cpw_lumped_22um_105ohm_cond_59600000_porte_75um_NOPEC_Absorbing_4/port-S.csv'
     x, s11, s11_phase, s21, s21_phase = read_csv_data(path, [0, 1, 2, 3, 4])
     labels = ['[$Z_{S,L}=105\\Omega$]']
-    Z, gamma = calculate_Z_and_propagation_constant_from_S_matrix(s11, s11_phase, s21, s21_phase, Z0, trace_length=CPW_LENGTH)
+    Z, gamma = calculate_Z_and_propagation_constant_from_S_matrix(s11, s11_phase, s21, s21_phase, SIMULATION_Z0, trace_length=CPW_LENGTH)
     Z0_calc = calculate_RGLC_and_plot_Z0(Z, gamma, x, labels[0])
     if show_plot: plt.show()
     return Z0_calc
@@ -734,9 +737,10 @@ def plot_multiple_simulations(base_path):
         labels = [str(port) for port in PORT_WIDTHS]
         for i, port in enumerate(PORT_WIDTHS):
             path = base_path / f'coplanar_waveguide_lumped_22um_122.64ohm_cond_59600000_porte_{port}um_length_1mm/port-S.csv'
-            data = read_csv_data(path, [1, 3])
-            s11_all.append(data[0])
-            s21_all.append(data[1])
+            data = read_csv_data(path, [0, 1, 3])
+            x_all.append(data[0])
+            s11_all.append(data[1])
+            s21_all.append(data[2])
         # Calculate skin effect threshold
         skin_effect_thr = calculate_skin_effect_threshold(SKIN_EFF_FRACTION, SIMULATION_CONDUCTIVITY, 1000e-6, 90e-6, 20e-6)
 
@@ -867,6 +871,7 @@ def plot_multiple_simulations(base_path):
     dielectric_losses = []
     conductor_losses = []
     print("\n===========Calculating dielectric losses===========")
+    print(x_all)
     dielectric_losses.extend(calculate_dielectric_losses(i) for i in x_all[0])
     print("\n\n===========Calculating conductor losses===========")
     conductor_losses.extend(calculate_conductor_losses(i) for i in x_all[0])
@@ -874,7 +879,7 @@ def plot_multiple_simulations(base_path):
     s11_err, s21_err = estimate_systematic_uncertainty()
     calculate_RGLC_and_plot_Z0_from_the_105Ohm_simulation(False)
 
-    compare_with_Sierra = True
+    compare_with_Sierra = False
     chi2vsSierra = []
 
     ####################################S11####################################
@@ -1057,34 +1062,104 @@ def plot_data_vs_frequency(path='', label='', one_port_only=False):
     
     if path == '':
         return
-    
-    base_path = Path('postpro/Alluminio/Lumped/CPW/DiverseLunghezze/500MHz')
 
     full_path = f'{path}/port-S.csv'
     if one_port_only:
-        data = read_csv_data(full_path, [0, 1])
+        data = read_csv_data(full_path, [0, 1, 2])
     else:
-        data = read_csv_data(full_path, [0, 1, 3])
+        data = read_csv_data(full_path, [0, 1, 2, 3, 4])
+
+    marker_size = MARKERSIZE
+    if len(data[0]) > 100:
+        marker_size = 1
     
     # Calculate skin effect threshold
     skin_effect_thr = calculate_skin_effect_threshold(SKIN_EFF_FRACTION, SIMULATION_CONDUCTIVITY, 1000e-6, 90e-6, 20e-6)
 
     fig1, ax1 = plt.subplots()
-    ax1.errorbar(data[0], data[1], xerr=0, yerr=0, color='red', linestyle='solid', marker='o', markersize=MARKERSIZE, label=label)
+    ax1.errorbar(data[0], data[1], xerr=0, yerr=0, color='red', linestyle='solid', marker='o', markersize=marker_size, label=label)
     ax1.set_title('S11 vs Frequency', fontsize=18)
     ax1.grid(True)
-    #ax1.legend(fontsize='x-large')
+    ax1.legend(fontsize='x-large')
     ax1.set_xlabel('Frequency [GHz]')
     ax1.set_ylabel('|S11|')
 
     if not one_port_only:
         fig2, ax2 = plt.subplots()
-        ax2.errorbar(data[0], data[2], xerr=0, yerr=0, color='blue', linestyle='solid', marker='o', markersize=MARKERSIZE, label=label)
+        ax2.errorbar(data[0], data[3], xerr=0, yerr=0, color='blue', linestyle='solid', marker='o', markersize=marker_size, label=label)
         ax2.set_title('S21 vs Frequency', fontsize=18)
         ax2.grid(True)
-        #ax2.legend(fontsize='x-large')
+        ax2.legend(fontsize='x-large')
         ax2.set_xlabel('Frequency [GHz]')
-        ax2.set_ylabel('|S21|')
+        ax2.set_ylabel('|S21| [dB]')
+
+    if one_port_only:
+        Z_modulo = []
+        Z_phase = []
+        for i_freq in enumerate(data[0]):
+            i = i_freq[0]
+            S11_modulo = 10**(data[1][i]/20)
+            S11_phase = np.pi/180*data[2][i]
+            S11_real = S11_modulo*np.cos(S11_phase)
+            S11_imag = S11_modulo*np.sin(S11_phase)
+            Z = SIMULATION_Z0 * (1 + S11_real + 1j*S11_imag) / (1 - S11_real - 1j*S11_imag)
+            Z_modulo.append(np.sqrt(Z.real**2 + Z.imag**2))
+            Z_phase.append(np.atan(Z.imag/Z.real))
+
+        fig3, ax3 = plt.subplots()
+        ax3.errorbar(data[0], Z_modulo, xerr=0, yerr=0, color='blue', linestyle='solid', marker='o', markersize=marker_size, label=label)
+        ax3.set_title('|Z| vs Frequency', fontsize=18)
+        ax3.grid(True)
+        ax3.legend(fontsize='x-large')
+        ax3.set_xlabel('Frequency [GHz]')
+        ax3.set_ylabel('$|Z| [\\Omega]$')
+
+        fig4, ax4 = plt.subplots()
+        ax4.errorbar(data[0], Z_phase, xerr=0, yerr=0, color='blue', linestyle='solid', marker='o', markersize=marker_size, label=label)
+        ax4.set_title('arg(Z) vs Frequency', fontsize=18)
+        ax4.grid(True)
+        ax4.legend(fontsize='x-large')
+        ax4.set_xlabel('Frequency [GHz]')
+        ax4.set_ylabel('arg(Z) [rad]')
+
+    plt.xticks(rotation=25)
+    #plt.tight_layout()
+    plt.show()
+
+def plot_data_vs_frequency_overimposed(paths=[''], labels=[''], one_port_only=False):
+    
+    if paths[0] == '':
+        return
+
+    data = []
+    for path in paths:
+        full_path = f'{path}/port-S.csv'
+        if one_port_only:
+            data.append(read_csv_data(full_path, [0, 1]))
+        else:
+            data.append(read_csv_data(full_path, [0, 1, 3]))
+    
+    
+    # Calculate skin effect threshold
+    skin_effect_thr = calculate_skin_effect_threshold(SKIN_EFF_FRACTION, SIMULATION_CONDUCTIVITY, 1000e-6, 90e-6, 20e-6)
+
+    fig1, ax1 = plt.subplots()
+    for i, (d, label) in enumerate(zip(data, labels)):
+        ax1.errorbar(d[0], d[1], xerr=0, yerr=0, color=COLORS[i], linestyle='solid', marker='o', markersize=MARKERSIZE, label=label)
+        ax1.set_title('S11 vs Frequency', fontsize=18)
+        ax1.grid(True)
+        ax1.legend(fontsize='x-large')
+        ax1.set_xlabel('Frequency [GHz]')
+        ax1.set_ylabel('|S11|')
+
+        if not one_port_only:
+            fig2, ax2 = plt.subplots()
+            ax2.errorbar(d[0], d[2], xerr=0, yerr=0, color=COLORS[i], linestyle='solid', marker='o', markersize=MARKERSIZE, label=label)
+            ax2.set_title('S21 vs Frequency', fontsize=18)
+            ax2.grid(True)
+            ax2.legend(fontsize='x-large')
+            ax2.set_xlabel('Frequency [GHz]')
+            ax2.set_ylabel('|S21|')
 
     plt.xticks(rotation=25)
     #plt.tight_layout()
@@ -1099,10 +1174,15 @@ if __name__ == '__main__':
     #plot_multiple_simulations(BASE_PATH_102OHM)
     #plot_multiple_simulations(BASE_PATH_102OHM_DIVERSE_CONDUCIBILITA)
     #plot_multiple_simulations(BASE_PATH_TEST)
-    #plot_multiple_simulations(BASE_PATH_DIVERSE_PORTE)
+    plot_multiple_simulations(BASE_PATH_DIVERSE_PORTE)
     #plot_multiple_simulations(BASE_PATH_NUOVI_TEST_PEC)
 
-    if SIMULATION_CONDUCTIVITY == CONDUCTIVITY_COPPER and CPW_LENGTH == 1000e-6: plot_multiple_simulations(BASE_PATH_REPORT)
+    if (SIMULATION_CONDUCTIVITY == CONDUCTIVITY_COPPER 
+        and CPW_LENGTH == 1000e-6 
+        and SIMULATION_Z0 > 100 
+        and SIMULATION_Z0 < 110
+        ): 
+        plot_multiple_simulations(BASE_PATH_REPORT)
 
     ################################ TEST ALTRE FUNZIONI ################################
 
@@ -1141,24 +1221,97 @@ if __name__ == '__main__':
     Part 1—validation of the 3D modelling approach"
     (design A)
     """
+    """
+    #========================================================================================================================================#
     calculate_Z0_from_conductor_losses(trace_width=116e-6, trace_thickness=0.5e-6, gap_width=65e-6, substrate_thickness=525e-6, dielectric_constant=11.7)
     #design rame con piste spesse 20 um
     #plot_data_vs_frequency('postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_40ohm_cond_58800000_port0.075_1350um_NOPEC_Absorbing_4',
     #                       '[Cu-HRS]', #HRS = High Resistivity Silicon @dielectric constant=11.7 and loss tangent=0.0013 (?)
     #                       one_port_only=True)
+    
     #design in oro con piste spesse 0.5 um
     plot_data_vs_frequency('postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_25ohm_cond_45000000_port0.075_1350um_NOPEC_Absorbing_4',
                            '[Au-HRS]', #HRS = High Resistivity Silicon @dielectric constant=11.7 and loss tangent=0.0013 (?)
                            one_port_only=True)
+    #========================================================================================================================================#
+    """
+    """
+    Analisi della CPW open con le geometrie:
+     - ad una porta (OpenCPW)
+     - a due porte ma con la seconda porta con R = 9999999999999 Ohm (CPW)
+    """
+    """
+    #========================================================================================================================================#
+    #design OpenCPW e una porta da 105Ohm - vacuum
+    plot_data_vs_frequency('postpro/Alluminio/Lumped/OpenCPW/vacuum_cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+                           '[Kapton-Al, OpenCPW-vacuum]',
+                           one_port_only=True)
+
+    #design OpenCPW e una porta da 105Ohm - wet air
+    plot_data_vs_frequency('postpro/Alluminio/Lumped/OpenCPW/wet_cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+                           '[Kapton-Al, OpenCPW-wet air]',
+                           one_port_only=True)
     
+    #design OpenCPW e una porta da 105Ohm - dry air
+    plot_data_vs_frequency('postpro/Alluminio/Lumped/OpenCPW/dry_cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+                           '[Kapton-Al, OpenCPW-dry air]',
+                           one_port_only=True)
     
+    #design CPW con due porte, la prima da 105Ohm e la seconda con impedenza infinita
+    plot_data_vs_frequency('postpro/Alluminio/Lumped/CPW/InfiniteImpedance/cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+                           '[Kapton-Al, CPW Z=\u221E]',
+                           one_port_only=False)
+    """
+    #precedenti plot overimposed
+    paths = [#'postpro/Alluminio/Lumped/OpenCPW/vacuum_cpw_lumped_22um_105ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4',
+             #'postpro/Alluminio/Lumped/OpenCPW/wet_cpw_lumped_22um_105ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4',
+             'postpro/Alluminio/Lumped/OpenCPW/dry_cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+             'postpro/Alluminio/Lumped/CPW/InfiniteImpedance/cpw_lumped_22um_105ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4'
+             ]
+    labels = [#'[Kapton-Al, OpenCPW-vacuum]',
+              #'[Kapton-Al, OpenCPW-wet air]',
+              '[Kapton-Al, OpenCPW-dry air-Z=105\u2126]',
+              '[Kapton-Al, CPW ZL=\u221E-ZS=105\u2126]'
+              ]
+    plot_data_vs_frequency_overimposed(paths, labels, True)
+    #========================================================================================================================================#
+    
+    #plot_data_vs_frequency('postpro/Alluminio/Lumped/GapCapacitor/cpw_GC_lumped_22um_105ohm_cond_32894736_port0.075_100um_NOPEC_Absorbing_4',
+    #                       '[Kapton-Al, Gap Capacitor]',
+    #                       one_port_only=False)
+
+    #step out
+    #plot_data_vs_frequency('postpro/Alluminio/Lumped/StepOut/cpw_lumped_22um_50ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4',
+    #                       '[Kapton-Al, Step Out]',
+    #                       one_port_only=False)
     
     #S_parameters_vs_length()
-    #calculate_skin_effect_threshold(0, CONDUCTIVITY_COPPER, 1000e-6, 90e-6,20e-6, Z0)
-    #calculate_skin_effect_threshold(0, CONDUCTIVITY_ALUMINIUM, 1000e-6, 90e-6,20e-6, Z0)
 
+    #Open CPW
+    plot_data_vs_frequency('postpro/Alluminio/Lumped/OpenCPW/cpw_lumped_22um_50ohm_cond_32894736_port0.075_8000um_NOPEC_Absorbing_4',
+                           '[Kapton-Al, OpenCPW-8mm]',
+                           one_port_only=True)
     
-    calculate_Z0_from_conductor_losses(trace_width=90e-6*0.7, trace_thickness=20e-6, gap_width=100e-6+0.3*90e-6, substrate_thickness=25e-6, dielectric_constant=3.3)
+    #calculate_Z0_from_conductor_losses(trace_width=90e-6, trace_thickness=20e-6, gap_width=100e-6, substrate_thickness=25e-6, dielectric_constant=3.3)
+    
+    """
+    #CPW with Zc = 100.9619 Ohm (Z0 = 126 Ohm, e_eff = 1.57) post matlab results
+    plot_data_vs_frequency('postpro/Rame/Lumped/CPW/TestPostMatlab/cpw_lumped_22um_100.9619ohm_cond_59600000_port0.075_1000um_NOPEC_Absorbing_4',
+                           '[Kapton-Copper, CPW-1mm]',
+                           one_port_only=False)
+    """
+    
+    #print(calculate_conductor_losses(1, CONDUCTIVITY_COPPER, 90e-6, 20e-6, 1, 100e-6, 105))
+
+    #CalKit0509 with dimensions before SEM measurements
+    plot_data_vs_frequency('postpro/Gold/Lumped/CalKit/0509/ONEPORT_cpw_lumped_8um_50ohm_cond_45000000_port0.075_1600um_NOPEC_Absorbing_4',
+                           '[CalKit0509-Open]',
+                           one_port_only=True)
+
+    #CalKit0509 with real dimensions measured with SEM
+    plot_data_vs_frequency('postpro/Gold/Lumped/CalKit/0509/ONEPORT_cpw_lumped_10um_50ohm_cond_45000000_port0.075_1800um_NOPEC_Absorbing_4',
+                           '[CalKit0509-Open]',
+                           one_port_only=True)
     
     
     

@@ -130,8 +130,8 @@
 
         {
           "Type": "Linear",
-          "MinFreq": 0.1,  // GHz
-          "MaxFreq": 3.1,  // GHz
+          "MinFreq": 0.2,  // GHz
+          "MaxFreq": 3.0,  // GHz
           "FreqStep": 0.2 // GHz
         }
 

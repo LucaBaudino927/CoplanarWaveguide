@@ -1,0 +1,134 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/Gold/Wave/CalKit/0509/ONEPORT_cpw_wave_10um_removeMetal_condSubstrate_port500x785_1800um_PEC_5_6_8_10_Absorbing_7"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/CalKit/ONEPORT/Wave/cpw_CalKit0509_ONEPORT_removeMetal_condSubstrate_wave_mesh10.0um_port500.0x785.0.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement":
+    {
+      //"Tol": 1.0e-2,
+      //"MaxIts": 2,
+      //"Nonconformal": false
+    }
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [1],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [2],  // Kapton
+        "Permittivity": 9.8,
+        "LossTan": 0.0001 //kapton: 0.0013, alumina: 0.0001
+      },
+      {
+        "Attributes": [3],  // Conductor substrate
+        "Conductivity": 5e7
+      }
+    ],
+    "Postprocessing":
+    {
+      "Energy":
+      [
+        {
+          "Index": 1,
+          "Attributes": [2]
+        }
+      ],
+      "Probe":
+      [
+        {
+          "Index": 1,
+          "Center": [0, 390, 0] // left side of gnd1
+        },
+        {
+          "Index": 2,
+          "Center": [0, 490, 0] // rigth side of signal
+        }
+      ]
+    }
+  },
+  "Boundaries":
+  {
+    "PEC":
+    {
+      "Attributes": [5, 6, 8, 10]  // metal boundaries + end1 + end2
+    },
+    "Absorbing":
+    {
+      "Attributes": [7],  //farfield
+      "Order": 1
+    },
+    "WavePort":
+    [
+      {
+        "Index": 1,
+        "Attributes": [4],
+        "Mode": 1,
+        "Offset": 0.0,
+        "Excitation": true
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    "Driven":
+    {
+      "AdaptiveTol": 1e-3,
+      "Samples":
+      [
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.05] // GHz
+        //},
+        //{
+        //   "Type": "Linear",
+        //   "MinFreq": 0.1,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.1 // GHz
+        //},
+
+        //{
+        //  "Type": "Linear",
+        //  "MinFreq": 0.5,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.5 // GHz
+        //}
+
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.5] // GHz
+        //}
+
+        //Adaptive run
+        {
+          "Type": "Linear",
+          "MinFreq": 0.05,  // GHz
+          "MaxFreq": 3.0,  // GHz
+          "FreqStep": 0.01 // GHz
+        }
+       
+      ]//, "Save": [1.0, 3.0]
+
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,  //prima 1.0e-8
+      "MaxIts": 200   //prima 200
+    }
+  }
+}

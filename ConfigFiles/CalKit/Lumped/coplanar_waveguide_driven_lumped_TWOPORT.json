@@ -1,0 +1,406 @@
+{
+  "Problem":
+  {
+    "Type": "Driven",
+    "Verbose": 2,
+    "Output": "postpro/Gold/Lumped/CalKit/LOAD103R/TWOPORT_cpw_lumped_3.33um_50_50ohm_cond_45000000_port0.075_50um_NOPEC_Absorbing_4"
+  },
+  "Model":
+  {
+    "Mesh": "mesh/CalKit/LOAD103R/TWOPORT/cpw_CalKitLOAD103R_TWOPORT_lumped_mesh3.33um_port3.75um_length50.0um.msh2",
+    "L0": 1.0e-6,  // μm
+    "Refinement":
+    {
+      //"Tol": 1.0e-2,
+      //"MaxIts": 2
+    }
+  },
+  "Domains":
+  {
+    "Materials":
+    [
+      {
+        "Attributes": [1],  // Air
+        "Permeability": 1.0,
+        "Permittivity": 1.0,
+        "LossTan": 0.0
+      },
+      {
+        "Attributes": [3],  // Aluminium
+        "Conductivity": 4.5e7 // S/m     Rame prima: 5.96e7  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84, Gold: 4.5e7
+      },
+      {
+        "Attributes": [2],  // Kapton
+        "Permittivity": 9.8,
+        "LossTan": 0.0001 //kapton: 0.0013, alumina: 0.0001
+      }
+    ],
+    "Postprocessing":
+    {
+      "Energy":
+      [
+        {
+          "Index": 1,
+          "Attributes": [2]
+        }
+      ],
+      "Probe":
+      [
+        { "Index": 1, "Center": [25, 250.0, 6] },
+        { "Index": 2, "Center": [25, 251.0, 6] },
+        { "Index": 3, "Center": [25, 252.0, 6] },
+        { "Index": 4, "Center": [25, 253.0, 6] },
+        { "Index": 5, "Center": [25, 254.0, 6] },
+        { "Index": 6, "Center": [25, 255.0, 6] },
+        { "Index": 7, "Center": [25, 256.0, 6] },
+        { "Index": 8, "Center": [25, 257.0, 6] },
+        { "Index": 9, "Center": [25, 258.0, 6] },
+        { "Index": 10, "Center": [25, 259.0, 6] },
+        { "Index": 11, "Center": [25, 260.0, 6] },
+        { "Index": 12, "Center": [25, 261.0, 6] },
+        { "Index": 13, "Center": [25, 262.0, 6] },
+        { "Index": 14, "Center": [25, 263.0, 6] },
+        { "Index": 15, "Center": [25, 264.0, 6] },
+        { "Index": 16, "Center": [25, 265.0, 6] },
+        { "Index": 17, "Center": [25, 266.0, 6] },
+        { "Index": 18, "Center": [25, 267.0, 6] },
+        { "Index": 19, "Center": [25, 268.0, 6] },
+        { "Index": 20, "Center": [25, 269.0, 6] },
+        { "Index": 21, "Center": [25, 270.0, 6] },
+        { "Index": 22, "Center": [25, 271.0, 6] },
+        { "Index": 23, "Center": [25, 272.0, 6] },
+        { "Index": 24, "Center": [25, 273.0, 6] },
+        { "Index": 25, "Center": [25, 274.0, 6] },
+        { "Index": 26, "Center": [25, 275.0, 6] },
+        { "Index": 27, "Center": [25, 276.0, 6] },
+        { "Index": 28, "Center": [25, 277.0, 6] },
+        { "Index": 29, "Center": [25, 278.0, 6] },
+        { "Index": 30, "Center": [25, 279.0, 6] },
+        { "Index": 31, "Center": [25, 280.0, 6] },
+        { "Index": 32, "Center": [25, 281.0, 6] },
+        { "Index": 33, "Center": [25, 282.0, 6] },
+        { "Index": 34, "Center": [25, 283.0, 6] },
+        { "Index": 35, "Center": [25, 284.0, 6] },
+        { "Index": 36, "Center": [25, 285.0, 6] },
+        { "Index": 37, "Center": [25, 286.0, 6] },
+        { "Index": 38, "Center": [25, 287.0, 6] },
+        { "Index": 39, "Center": [25, 288.0, 6] },
+        { "Index": 40, "Center": [25, 289.0, 6] },
+        { "Index": 41, "Center": [25, 290.0, 6] },
+        { "Index": 42, "Center": [25, 291.0, 6] },
+        { "Index": 43, "Center": [25, 292.0, 6] },
+        { "Index": 44, "Center": [25, 293.0, 6] },
+        { "Index": 45, "Center": [25, 294.0, 6] },
+        { "Index": 46, "Center": [25, 295.0, 6] },
+        { "Index": 47, "Center": [25, 296.0, 6] },
+        { "Index": 48, "Center": [25, 297.0, 6] },
+        { "Index": 49, "Center": [25, 298.0, 6] },
+        { "Index": 50, "Center": [25, 299.0, 6] },
+        { "Index": 51, "Center": [25, 300.0, 6] },
+        { "Index": 52, "Center": [25, 301.0, 6] },
+        { "Index": 53, "Center": [25, 302.0, 6] },
+        { "Index": 54, "Center": [25, 303.0, 6] },
+        { "Index": 55, "Center": [25, 304.0, 6] },
+        { "Index": 56, "Center": [25, 305.0, 6] },
+        { "Index": 57, "Center": [25, 306.0, 6] },
+        { "Index": 58, "Center": [25, 307.0, 6] },
+        { "Index": 59, "Center": [25, 308.0, 6] },
+        { "Index": 60, "Center": [25, 309.0, 6] },
+        { "Index": 61, "Center": [25, 310.0, 6] },
+        { "Index": 62, "Center": [25, 311.0, 6] },
+        { "Index": 63, "Center": [25, 312.0, 6] },
+        { "Index": 64, "Center": [25, 313.0, 6] },
+        { "Index": 65, "Center": [25, 314.0, 6] },
+        { "Index": 66, "Center": [25, 315.0, 6] },
+        { "Index": 67, "Center": [25, 316.0, 6] },
+        { "Index": 68, "Center": [25, 317.0, 6] },
+        { "Index": 69, "Center": [25, 318.0, 6] },
+        { "Index": 70, "Center": [25, 319.0, 6] },
+        { "Index": 71, "Center": [25, 320.0, 6] },
+        { "Index": 72, "Center": [25, 321.0, 6] },
+        { "Index": 73, "Center": [25, 322.0, 6] },
+        { "Index": 74, "Center": [25, 323.0, 6] },
+        { "Index": 75, "Center": [25, 324.0, 6] },
+        { "Index": 76, "Center": [25, 325.0, 6] },
+        { "Index": 77, "Center": [25, 326.0, 6] },
+        { "Index": 78, "Center": [25, 327.0, 6] },
+        { "Index": 79, "Center": [25, 328.0, 6] },
+        { "Index": 80, "Center": [25, 329.0, 6] },
+        { "Index": 81, "Center": [25, 330.0, 6] },  // gnd 1 ends, gap 1 starts
+        { "Index": 82, "Center": [25, 331.0, 6] },
+        { "Index": 83, "Center": [25, 332.0, 6] },
+        { "Index": 84, "Center": [25, 333.0, 6] },
+        { "Index": 85, "Center": [25, 334.0, 6] },
+        { "Index": 86, "Center": [25, 335.0, 6] },
+        { "Index": 87, "Center": [25, 336.0, 6] },
+        { "Index": 88, "Center": [25, 337.0, 6] },
+        { "Index": 89, "Center": [25, 338.0, 6] },
+        { "Index": 90, "Center": [25, 339.0, 6] },
+        { "Index": 91, "Center": [25, 340.0, 6] },
+        { "Index": 92, "Center": [25, 341.0, 6] }, // gap 1 center at 341.5
+        { "Index": 93, "Center": [25, 342.0, 6] }, // gap 1 center at 341.5
+        { "Index": 94, "Center": [25, 343.0, 6] },
+        { "Index": 95, "Center": [25, 344.0, 6] },
+        { "Index": 96, "Center": [25, 345.0, 6] },
+        { "Index": 97, "Center": [25, 346.0, 6] },
+        { "Index": 98, "Center": [25, 347.0, 6] },
+        { "Index": 99, "Center": [25, 348.0, 6] },
+        { "Index": 100, "Center": [25, 349.0, 6] },
+        { "Index": 101, "Center": [25, 350.0, 6] },
+        { "Index": 102, "Center": [25, 351.0, 6] },
+        { "Index": 103, "Center": [25, 352.0, 6] },
+        { "Index": 104, "Center": [25, 353.0, 6] },  // gap 1 ends, signal line starts
+        { "Index": 105, "Center": [25, 354.0, 6] },
+        { "Index": 106, "Center": [25, 355.0, 6] },
+        { "Index": 107, "Center": [25, 356.0, 6] },
+        { "Index": 108, "Center": [25, 357.0, 6] },
+        { "Index": 109, "Center": [25, 358.0, 6] },
+        { "Index": 110, "Center": [25, 359.0, 6] },
+        { "Index": 111, "Center": [25, 360.0, 6] },
+        { "Index": 112, "Center": [25, 361.0, 6] },
+        { "Index": 113, "Center": [25, 362.0, 6] },
+        { "Index": 114, "Center": [25, 363.0, 6] },
+        { "Index": 115, "Center": [25, 364.0, 6] },
+        { "Index": 116, "Center": [25, 365.0, 6] },
+        { "Index": 117, "Center": [25, 366.0, 6] },
+        { "Index": 118, "Center": [25, 367.0, 6] },
+        { "Index": 119, "Center": [25, 368.0, 6] },
+        { "Index": 120, "Center": [25, 369.0, 6] },
+        { "Index": 121, "Center": [25, 370.0, 6] },
+        { "Index": 122, "Center": [25, 371.0, 6] },
+        { "Index": 123, "Center": [25, 372.0, 6] },
+        { "Index": 124, "Center": [25, 373.0, 6] },
+        { "Index": 125, "Center": [25, 374.0, 6] },
+        { "Index": 126, "Center": [25, 375.0, 6] },
+        { "Index": 127, "Center": [25, 376.0, 6] },
+        { "Index": 128, "Center": [25, 377.0, 6] },
+        { "Index": 129, "Center": [25, 378.0, 6] }, //signal center
+        { "Index": 130, "Center": [25, 379.0, 6] },
+        { "Index": 131, "Center": [25, 380.0, 6] },
+        { "Index": 132, "Center": [25, 381.0, 6] },
+        { "Index": 133, "Center": [25, 382.0, 6] },
+        { "Index": 134, "Center": [25, 383.0, 6] },
+        { "Index": 135, "Center": [25, 384.0, 6] },
+        { "Index": 136, "Center": [25, 385.0, 6] },
+        { "Index": 137, "Center": [25, 386.0, 6] },
+        { "Index": 138, "Center": [25, 387.0, 6] },
+        { "Index": 139, "Center": [25, 388.0, 6] },
+        { "Index": 140, "Center": [25, 389.0, 6] },
+        { "Index": 141, "Center": [25, 390.0, 6] },
+        { "Index": 142, "Center": [25, 391.0, 6] },
+        { "Index": 143, "Center": [25, 392.0, 6] },
+        { "Index": 144, "Center": [25, 393.0, 6] },
+        { "Index": 145, "Center": [25, 394.0, 6] },
+        { "Index": 146, "Center": [25, 395.0, 6] },
+        { "Index": 147, "Center": [25, 396.0, 6] },
+        { "Index": 148, "Center": [25, 397.0, 6] },
+        { "Index": 149, "Center": [25, 398.0, 6] },
+        { "Index": 150, "Center": [25, 399.0, 6] },
+        { "Index": 151, "Center": [25, 400.0, 6] },
+        { "Index": 152, "Center": [25, 401.0, 6] },
+        { "Index": 153, "Center": [25, 402.0, 6] },
+        { "Index": 154, "Center": [25, 403.0, 6] }, // signal line ends, gap 2 starts
+        { "Index": 155, "Center": [25, 404.0, 6] },
+        { "Index": 156, "Center": [25, 405.0, 6] },
+        { "Index": 157, "Center": [25, 406.0, 6] },
+        { "Index": 158, "Center": [25, 407.0, 6] },
+        { "Index": 159, "Center": [25, 408.0, 6] },
+        { "Index": 160, "Center": [25, 409.0, 6] },
+        { "Index": 161, "Center": [25, 410.0, 6] },
+        { "Index": 162, "Center": [25, 411.0, 6] },
+        { "Index": 163, "Center": [25, 412.0, 6] },
+        { "Index": 164, "Center": [25, 413.0, 6] },
+        { "Index": 165, "Center": [25, 414.0, 6] }, // gap 2 center at 414.5
+        { "Index": 166, "Center": [25, 415.0, 6] }, // gap 2 center at 414.5
+        { "Index": 167, "Center": [25, 416.0, 6] },
+        { "Index": 168, "Center": [25, 417.0, 6] },
+        { "Index": 169, "Center": [25, 418.0, 6] },
+        { "Index": 170, "Center": [25, 419.0, 6] },
+        { "Index": 171, "Center": [25, 420.0, 6] },
+        { "Index": 172, "Center": [25, 421.0, 6] },
+        { "Index": 173, "Center": [25, 422.0, 6] },
+        { "Index": 174, "Center": [25, 423.0, 6] },
+        { "Index": 175, "Center": [25, 424.0, 6] },
+        { "Index": 176, "Center": [25, 425.0, 6] },
+        { "Index": 177, "Center": [25, 426.0, 6] }, // gap 2 ends, gnd 2 starts
+        { "Index": 178, "Center": [25, 427.0, 6] },
+        { "Index": 179, "Center": [25, 428.0, 6] },
+        { "Index": 180, "Center": [25, 429.0, 6] },
+        { "Index": 181, "Center": [25, 430.0, 6] },
+        { "Index": 182, "Center": [25, 431.0, 6] },
+        { "Index": 183, "Center": [25, 432.0, 6] },
+        { "Index": 184, "Center": [25, 433.0, 6] },
+        { "Index": 185, "Center": [25, 434.0, 6] },
+        { "Index": 186, "Center": [25, 435.0, 6] },
+        { "Index": 187, "Center": [25, 436.0, 6] },
+        { "Index": 188, "Center": [25, 437.0, 6] },
+        { "Index": 189, "Center": [25, 438.0, 6] },
+        { "Index": 190, "Center": [25, 439.0, 6] },
+        { "Index": 191, "Center": [25, 440.0, 6] },
+        { "Index": 192, "Center": [25, 441.0, 6] },
+        { "Index": 193, "Center": [25, 442.0, 6] },
+        { "Index": 194, "Center": [25, 443.0, 6] },
+        { "Index": 195, "Center": [25, 444.0, 6] },
+        { "Index": 196, "Center": [25, 445.0, 6] },
+        { "Index": 197, "Center": [25, 446.0, 6] },
+        { "Index": 198, "Center": [25, 447.0, 6] },
+        { "Index": 199, "Center": [25, 448.0, 6] },
+        { "Index": 200, "Center": [25, 449.0, 6] },
+        { "Index": 201, "Center": [25, 450.0, 6] },
+        { "Index": 202, "Center": [25, 451.0, 6] },
+        { "Index": 203, "Center": [25, 452.0, 6] },
+        { "Index": 204, "Center": [25, 453.0, 6] },
+        { "Index": 205, "Center": [25, 454.0, 6] },
+        { "Index": 206, "Center": [25, 455.0, 6] },
+        { "Index": 207, "Center": [25, 456.0, 6] },
+        { "Index": 208, "Center": [25, 457.0, 6] },
+        { "Index": 209, "Center": [25, 458.0, 6] },
+        { "Index": 210, "Center": [25, 459.0, 6] },
+        { "Index": 211, "Center": [25, 460.0, 6] },
+        { "Index": 212, "Center": [25, 461.0, 6] },
+        { "Index": 213, "Center": [25, 462.0, 6] },
+        { "Index": 214, "Center": [25, 463.0, 6] },
+        { "Index": 215, "Center": [25, 464.0, 6] },
+        { "Index": 216, "Center": [25, 465.0, 6] },
+        { "Index": 217, "Center": [25, 466.0, 6] },
+        { "Index": 218, "Center": [25, 467.0, 6] },
+        { "Index": 219, "Center": [25, 468.0, 6] },
+        { "Index": 220, "Center": [25, 469.0, 6] },
+        { "Index": 221, "Center": [25, 470.0, 6] },
+        { "Index": 222, "Center": [25, 471.0, 6] },
+        { "Index": 223, "Center": [25, 472.0, 6] },
+        { "Index": 224, "Center": [25, 473.0, 6] },
+        { "Index": 225, "Center": [25, 474.0, 6] },
+        { "Index": 226, "Center": [25, 475.0, 6] },
+        { "Index": 227, "Center": [25, 476.0, 6] },
+        { "Index": 228, "Center": [25, 477.0, 6] },
+        { "Index": 229, "Center": [25, 478.0, 6] },
+        { "Index": 230, "Center": [25, 479.0, 6] },
+        { "Index": 231, "Center": [25, 480.0, 6] },
+        { "Index": 232, "Center": [25, 481.0, 6] },
+        { "Index": 233, "Center": [25, 482.0, 6] },
+        { "Index": 234, "Center": [25, 483.0, 6] },
+        { "Index": 235, "Center": [25, 484.0, 6] },
+        { "Index": 236, "Center": [25, 485.0, 6] },
+        { "Index": 237, "Center": [25, 486.0, 6] },
+        { "Index": 238, "Center": [25, 487.0, 6] },
+        { "Index": 239, "Center": [25, 488.0, 6] },
+        { "Index": 240, "Center": [25, 489.0, 6] },
+        { "Index": 241, "Center": [25, 490.0, 6] },
+        { "Index": 242, "Center": [25, 491.0, 6] },
+        { "Index": 243, "Center": [25, 492.0, 6] },
+        { "Index": 244, "Center": [25, 493.0, 6] },
+        { "Index": 245, "Center": [25, 494.0, 6] },
+        { "Index": 246, "Center": [25, 495.0, 6] },
+        { "Index": 247, "Center": [25, 496.0, 6] },
+        { "Index": 248, "Center": [25, 497.0, 6] },
+        { "Index": 249, "Center": [25, 498.0, 6] },
+        { "Index": 250, "Center": [25, 499.0, 6] },
+        { "Index": 251, "Center": [25, 500.0, 6] }
+      ]
+    }
+  },
+  "Boundaries":
+  {
+    //"PEC":
+    //{
+    //  "Attributes": [9,11]  // metal boundaries
+    //},
+    "Absorbing":
+    {
+      "Attributes": [4],  //farfield
+      "Order": 1
+    },
+    "LumpedPort":
+    [
+      {
+        "Index": 1,
+        "R": 50,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
+        //"L": 0.0,
+        //"C": 0.0,
+        "Excitation": 1,
+        "Active": true,
+        "Elements":
+        [
+          {
+            "Attributes": [5], // p1a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [7], // p1b
+            "Direction": "-Y"
+          }
+        ]
+      },
+      {
+        "Index": 2,
+        "R": 50,  // Ω, 2-element uniform
+        //"L": 0.0,
+        //"C": 0.0,
+        "Active": true,
+        "Elements":
+        [
+          {
+            "Attributes": [6], // p2a
+            "Direction": "+Y"
+          },
+          {
+            "Attributes": [8], // p2b
+            "Direction": "-Y"
+          }
+        ]
+      }
+    ]
+  },
+  "Solver":
+  {
+    "Order": 2,
+    "Device": "CPU",
+    "Driven":
+    {
+      "AdaptiveTol": 1e-3,
+      "Samples":
+      [
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.05] // GHz
+        //},
+        //{
+        //   "Type": "Linear",
+        //   "MinFreq": 0.1,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.1 // GHz
+        //},
+
+        //{
+        //  "Type": "Linear",
+        //  "MinFreq": 0.5,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.5 // GHz
+        //}
+
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.5] // GHz
+        //}
+
+        //Adaptive run
+        {
+          "Type": "Linear",
+          "MinFreq": 0.05,  // GHz
+          "MaxFreq": 3.0,  // GHz
+          "FreqStep": 0.01 // GHz
+        }
+       
+      ],
+      "Save": [0.05, 3.0]
+    },
+    "Linear":
+    {
+      "Type": "Default",
+      "KSPType": "GMRES",
+      "Tol": 1.0e-8,  //prima 1.0e-8
+      "MaxIts": 200   //prima 200
+    }
+  }
+}

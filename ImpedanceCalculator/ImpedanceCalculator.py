@@ -23,11 +23,11 @@ e calcola l'impedenza caratteristica.
 """
 def calculate_impedance_of(
     filename = "",
-    conductor_thickness_um = 20.0,
+    conductor_thickness_um=20.0,
     substrate_dielectric_constant=3.3,
-    scan_coordinate_um =10.0
+    scan_coordinate_um=10.0
 ):
-    assert filename != '', "Filename must be provided"
+    assert filename != "", "Filename must be provided"
     gmsh.initialize()
     gmsh.option.setNumber("General.Verbosity", 5)
     # Add model
@@ -38,6 +38,7 @@ def calculate_impedance_of(
 
     desired_physical_groups = []
     if filename.endswith(".geo") or filename.endswith(".geo_unrolled"):
+        print("If you provide a .geo file, make sure it contains the physical groups: trace, trace2, kapton.")
         
         gmsh.open(filename)
         gmsh.model.occ.synchronize()
@@ -59,7 +60,7 @@ def calculate_impedance_of(
                 desired_physical_groups.append(("kapton", tag))
 
         # Generate mesh
-        gmsh.option.setNumber("Mesh.MeshSizeMin", conductor_thickness_um / 2.0)
+        gmsh.option.setNumber("Mesh.MeshSizeMin", conductor_thickness_um * 0.9)
         gmsh.option.setNumber("Mesh.MeshSizeMax", conductor_thickness_um * 10.0)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
@@ -74,10 +75,10 @@ def calculate_impedance_of(
 
         gmsh.model.mesh.field.add("Threshold", 2)
         gmsh.model.mesh.field.setNumber(2, "InField", 1)
-        gmsh.model.mesh.field.setNumber(2, "SizeMin", conductor_thickness_um / 1.1)  # ##prima l_trace
-        gmsh.model.mesh.field.setNumber(2, "SizeMax", conductor_thickness_um * 10.0)  # ##prima l_farfield
-        gmsh.model.mesh.field.setNumber(2, "DistMin", 1.0 * conductor_thickness_um)  # ##prima 1.0 * trace_width_μm
-        gmsh.model.mesh.field.setNumber(2, "DistMax", 2.0 * conductor_thickness_um)  # ##prima 0.7 * sep_dy
+        gmsh.model.mesh.field.setNumber(2, "SizeMin", conductor_thickness_um * 0.9)
+        gmsh.model.mesh.field.setNumber(2, "SizeMax", conductor_thickness_um * 10.0)
+        gmsh.model.mesh.field.setNumber(2, "DistMin", 1.0 * conductor_thickness_um)
+        gmsh.model.mesh.field.setNumber(2, "DistMax", 2.0 * conductor_thickness_um)
 
         gmsh.model.mesh.field.add("MinAniso", 101)
         gmsh.model.mesh.field.setNumbers(101, "FieldsList", [2])
@@ -100,6 +101,8 @@ def calculate_impedance_of(
         gmsh.finalize()
         
     elif filename.endswith(".msh2"):
+        print("If you provide a .msh2 file, make sure it contains the physical groups: trace, trace2, kapton "
+        "\nand the minimum size of the mesh is smaller than the smallest feature of the line (e.g., conductor thickness).")
         gmsh.merge(filename)
         gmsh.model.occ.synchronize()
         meshFilename = filename
@@ -116,11 +119,12 @@ def calculate_impedance_of(
                 extruded_trace_tags = gmsh.model.getEntitiesForPhysicalGroup(2, tag)
             if name == "kapton":
                 desired_physical_groups.append(("kapton", tag))
+        gmsh.finalize()
 
     mesh = meshio.read(os.path.join(directory, meshFilename), file_format="gmsh")
     pv_mesh = pv.wrap(mesh)   # Converts meshio object to PyVista mesh
     #pv_mesh.plot()
-    single_slice = pv_mesh.slice(normal=[1, 0, 0], origin=[scan_coordinate_um/3, 0, 0])
+    single_slice = pv_mesh.slice(normal=[1, 0, 0], origin=[scan_coordinate_um, 0, 0])
 
     substrate_thickness, conductor_thickness, gap_width, trace_width = process_slice(single_slice, desired_physical_groups)
     Z0 = calculate_Z0_from_conductor_losses(
@@ -135,11 +139,11 @@ def calculate_impedance_of(
     # Visualize
     p = pv.Plotter()
     p.add_mesh(pv_mesh.outline(), color='k')
-    cmap = plt.get_cmap('viridis', 4)
+    cmap = plt.get_cmap('viridis', 5)
     p.add_mesh(single_slice, cmap=cmap)
     p.show()
 
-    return
+    return Z0, scan_coordinate_um
 
 
 
@@ -272,13 +276,63 @@ def calculate_Z0_from_conductor_losses(trace_width=90e-6, trace_thickness=20e-6,
     #print(f'CPW impedance v1: {float((30 * np.pi) / np.sqrt(3.3) * (K(ksprime)/K(ks))):.2f} Ohm')
     return float(Z0)
 
+def scan_impedance(
+        filename="",
+        conductor_thickness_um=20.0,
+        substrate_dielectric_constant=3.3,
+        length_um=1000.0,
+        N=10
+):
+    assert filename != "", "Filename must be provided"
 
+    space_from_boarder = 1.0 #um
+    delta = (length_um - 2*space_from_boarder) / N    #um
+    Z0_list = []
+    scan_coordinate_list = []
+    array = []
+    counter = 0
+    for x in range(1, N, 1):
+        counter += delta
+        array.append(counter)
+    print(array)
+    
+    for x in array:
+        Z0, scan_coordinate = calculate_impedance_of(
+            filename=filename,
+            conductor_thickness_um=conductor_thickness_um,
+            substrate_dielectric_constant=substrate_dielectric_constant,
+            scan_coordinate_um=x
+            )
+        Z0_list.append(Z0)
+        scan_coordinate_list.append(round(scan_coordinate, None))
 
+    fig1, ax1 = plt.subplots()
+    ax1.errorbar(scan_coordinate_list, Z0_list, xerr=0, yerr=0, color='red', linestyle='solid', marker='o', markersize=5)
+    ax1.set_title('Z vs X-coordinate', fontsize=18)
+    ax1.grid(True)
+    #ax1.legend(fontsize='x-large')
+    ax1.set_xlabel('$x [\\mu m]$')
+    ax1.set_ylabel('$Z [\\Omega]$')
+    plt.xticks(rotation=25)
+    #plt.tight_layout()
+    plt.show()
 
+    return
+
+"""
 # Example usage:
 calculate_impedance_of(
-    filename="cpw_lumped_mesh22.5um_port75.0um_length1000.0um.msh2",
+    filename="stepOut_cpw_lumped_mesh22.5um_port75.0um_length1000.0um.msh2",
     conductor_thickness_um=20.0,
     substrate_dielectric_constant=3.3,
-    scan_coordinate_um=10.0
+    scan_coordinate_um=300.0
+)
+"""
+
+scan_impedance(
+        filename="stepOut_cpw_lumped_mesh22.5um_port75.0um_length1000.0um.msh2",
+        conductor_thickness_um=20.0,
+        substrate_dielectric_constant=3.3,
+        length_um=1000.0,
+        N=20
 )

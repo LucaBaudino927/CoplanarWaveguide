@@ -3,7 +3,7 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/Alluminio/Lumped/CPW/InfiniteImpedance/cpw_lumped_22um_105ohm_cond_32894736_port0.075_1000um_NOPEC_Absorbing_4"
+    "Output": "postpro/Rame/Lumped/CPW/TestPostMatlab/cpw_lumped_22um_100.9619ohm_cond_59600000_port0.075_1000um_NOPEC_Absorbing_4"
   },
   "Model":
   {
@@ -27,7 +27,7 @@
       },
       {
         "Attributes": [3],  // Aluminium
-        "Conductivity": 32894736.84 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
+        "Conductivity": 59600000 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
       },
       {
         "Attributes": [2],  // Kapton
@@ -72,7 +72,7 @@
     [
       {
         "Index": 1,
-        "R": 105,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
+        "R": 100.9619,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
         "L": 0.0,
         "C": 0.0,
         "Excitation": 1,
@@ -91,7 +91,7 @@
       },
       {
         "Index": 2,
-        "R": 9999999999999,  // Ω, 2-element uniform
+        "R": 100.9619,  // Ω, 2-element uniform
         "L": 0.0,
         "C": 0.0,
         "Active": true,
@@ -130,8 +130,8 @@
 
         {
           "Type": "Linear",
-          "MinFreq": 0.1,  // GHz
-          "MaxFreq": 3.1,  // GHz
+          "MinFreq": 0.2,  // GHz
+          "MaxFreq": 3.0,  // GHz
           "FreqStep": 0.2 // GHz
         }
 

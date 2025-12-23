@@ -3,16 +3,17 @@
   {
     "Type": "Driven",
     "Verbose": 2,
-    "Output": "postpro/AltriMateriali/Lumped/ShortCPW/cpw_lumped_29um_25ohm_cond_45000000_port0.075_1350um_NOPEC_Absorbing_4"
+    "Output": "postpro/Gold/Wave/CalKit/0509/ONEPORT_cpw_wave_10um_cond_45000000_port500x785_1800um_PEC_5_6_8_10_Absorbing_7"
   },
   "Model":
   {
-    "Mesh": "mesh/ShortCPW/short_cpw_lumped_mesh29.0um_port101.25um_length1350.0um.msh2", //"mesh/Test_nuova_geometria_1mm/cpw_port75um_lumped_22.5um.msh2",
+    "Mesh": "mesh/CalKit/ONEPORT/Wave/cpw_CalKit0509_ONEPORT_wave_mesh10.0um_port500.0x785.0.msh2",
     "L0": 1.0e-6,  // μm
     "Refinement":
     {
       //"Tol": 1.0e-2,
-      //"MaxIts": 2
+      //"MaxIts": 2,
+      //"Nonconformal": false
     }
   },
   "Domains":
@@ -27,12 +28,12 @@
       },
       {
         "Attributes": [3],  // Aluminium
-        "Conductivity": 45000000 // S/m     Rame prima: 59600000  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84
+        "Conductivity": 4.5e7 // S/m     Rame prima: 5.96e7  Rame now: 57471264  Al prima: 33112582.78 Al now: 32894736.84, Gold: 4.5e7
       },
       {
         "Attributes": [2],  // Kapton
-        "Permittivity": 11.7,
-        "LossTan": 0.0013
+        "Permittivity": 9.8,
+        "LossTan": 0.0001 //kapton: 0.0013, alumina: 0.0001
       }
     ],
     "Postprocessing":
@@ -59,35 +60,23 @@
   },
   "Boundaries":
   {
-    //"PEC":
-    //{
-    //  "Attributes": [7, 9]  // metal boundaries
-    //},
+    "PEC":
+    {
+      "Attributes": [5, 6, 8, 10]  // metal boundaries + end1 + end2
+    },
     "Absorbing":
     {
-      "Attributes": [4],  //farfield
+      "Attributes": [7],  //farfield
       "Order": 1
     },
-    "LumpedPort":
+    "WavePort":
     [
       {
         "Index": 1,
-        "R": 25.7880602388687,  // Ω, 2-element uniform       Z0_rame = 122.64803   Z0_al = 103.34
-        "L": 0.0,
-        "C": 0.0,
-        "Excitation": 1,
-        "Active": true,
-        "Elements":
-        [
-          {
-            "Attributes": [5], // p1a
-            "Direction": "+Y"
-          },
-          {
-            "Attributes": [6], // p1b
-            "Direction": "-Y"
-          }
-        ]
+        "Attributes": [4],
+        "Mode": 1,
+        "Offset": 0.0,
+        "Excitation": true
       }
     ]
   },
@@ -97,12 +86,13 @@
     "Device": "CPU",
     "Driven":
     {
+      "AdaptiveTol": 1e-3,
       "Samples":
       [
-        {
-          "Type": "Point",
-          "Freq": [0.05] // GHz
-        },
+        //{
+        //  "Type": "Point",
+        //  "Freq": [0.05] // GHz
+        //},
         //{
         //   "Type": "Linear",
         //   "MinFreq": 0.1,  // GHz
@@ -110,19 +100,28 @@
         //  "FreqStep": 0.1 // GHz
         //},
 
-        {
-          "Type": "Linear",
-          "MinFreq": 0.2,  // GHz
-          "MaxFreq": 3.0,  // GHz
-          "FreqStep": 0.2 // GHz
-        }
+        //{
+        //  "Type": "Linear",
+        //  "MinFreq": 0.5,  // GHz
+        //  "MaxFreq": 3.0,  // GHz
+        //  "FreqStep": 0.5 // GHz
+        //}
 
         //{
         //  "Type": "Point",
         //  "Freq": [0.5] // GHz
-       // }
+        //}
+
+        //Adaptive run
+        {
+          "Type": "Linear",
+          "MinFreq": 0.05,  // GHz
+          "MaxFreq": 3.0,  // GHz
+          "FreqStep": 0.01 // GHz
+        }
        
-      ]//,"Save": [0.05, 3.0]
+      ]//, "Save": [1.0, 3.0]
+
     },
     "Linear":
     {
